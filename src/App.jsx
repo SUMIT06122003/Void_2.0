@@ -307,7 +307,10 @@ function Page({ authToken, categories, currentPath, isAdmin, isLoggedIn, isSessi
     }
 
     if (!isSessionReady) {
-      return <section className="page-section">Checking admin access...</section>;
+      // Don’t block admin navigation forever.
+      // If session refresh is taking time, still render the admin page;
+      // AdminPage will call /api/admin/dashboard which will return 401/403.
+      return <AdminPage authToken={authToken} />;
     }
 
     if (sessionError) {
