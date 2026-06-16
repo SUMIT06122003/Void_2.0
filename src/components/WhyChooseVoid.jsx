@@ -3,23 +3,22 @@ import { storeSpecs } from "../data/storeData";
 const defaultWhyItems = [
   {
     title: "Training-first design",
-    text: "Built for movement—comfort, support, and performance that lasts through workouts and daily wear.",
+    text: "Built for movement - comfort, support, and performance that lasts through workouts and daily wear."
   },
   {
     title: "Premium feel & fit",
-    text: "T-shirts, shorts, socks, and shakers engineered to feel right from day one.",
+    text: "T-shirts, shorts, socks, and shakers engineered to feel right from day one."
   },
   {
     title: "Made for every session",
-    text: "From gym days to everyday activity—VOID stays ready for your routine.",
-  },
+    text: "From gym days to everyday activity - VOID stays ready for your routine."
+  }
 ];
 
 function WhyChooseVoid() {
-  // Reuse existing “storeSpecs” if present, but keep a consistent 3–4 bullet look.
-  const extra = (storeSpecs || []).slice(0, 1).map((s) => ({
-    title: s.label,
-    text: s.text,
+  const extra = (storeSpecs || []).slice(0, 1).map((spec) => ({
+    title: spec.label,
+    text: spec.text
   }));
 
   const items = [...defaultWhyItems, ...extra].slice(0, 4);
@@ -33,10 +32,11 @@ function WhyChooseVoid() {
       </div>
 
       <div className="why-void-grid">
-        {items.map((it) => (
-          <article className="why-void-card" key={it.title}>
-            <strong>{it.title}</strong>
-            <span>{it.text}</span>
+        {items.map((item, index) => (
+          <article className="why-void-card" key={item.title}>
+            <em>{String(index + 1).padStart(2, "0")}</em>
+            <strong>{item.title}</strong>
+            <span>{item.text}</span>
           </article>
         ))}
       </div>
@@ -45,4 +45,3 @@ function WhyChooseVoid() {
 }
 
 export default WhyChooseVoid;
-

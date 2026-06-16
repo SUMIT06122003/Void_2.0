@@ -49,7 +49,8 @@ module.exports = {
       __CLOUDINARY_VIDEO_TRANSFORM__: JSON.stringify(process.env.CLOUDINARY_VIDEO_TRANSFORM || "f_auto,q_auto")
     }),
     new HtmlWebpackPlugin({
-      template: "./index.html"
+      template: "./index.html",
+      favicon: "./assets/logo's/void-favicon.svg"
     })
   ],
   devServer: {

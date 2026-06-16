@@ -218,6 +218,19 @@ function Header({
           ) : null}
         </div>
 
+        {routes
+          .filter((item) => item.path !== "/" && item.path !== "/shop")
+          .map((item) => (
+            <a
+              className={isActiveRoute(currentPath, item.path) ? "is-active" : ""}
+              href={`#${item.path}`}
+              key={item.path}
+              onClick={() => setMenuOpen(false)}
+            >
+              {item.label}
+            </a>
+          ))}
+
         {isAdmin ? (
           <a
             className={isActiveRoute(currentPath, "/admin") ? "is-active" : ""}

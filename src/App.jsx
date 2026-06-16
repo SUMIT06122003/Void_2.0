@@ -8,6 +8,7 @@ import AdminPage from "./pages/AdminPage";
 import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
 import InfoPage from "./pages/InfoPage";
+import EventsPage from "./pages/EventsPage";
 import ProductPage from "./pages/ProductPage";
 import ShopPage from "./pages/ShopPage";
 import BagPage from "./pages/BagPage";
@@ -27,7 +28,8 @@ function App() {
   const [isSessionReady, setIsSessionReady] = useState(() => !window.localStorage.getItem("voidAuthToken"));
   const [storefrontCatalog, setStorefrontCatalog] = useState(() => ({
     products: [],
-    categories: []
+    categories: [],
+    events: []
   }));
 
   useEffect(() => {
@@ -58,13 +60,14 @@ function App() {
         const categories = buildStorefrontCategories(catalog.categories, products);
 
         if (isMounted) {
-          setStorefrontCatalog({ products, categories });
+          setStorefrontCatalog({ products, categories, events: Array.isArray(catalog.events) ? catalog.events : [] });
         }
       } catch {
         if (isMounted) {
           setStorefrontCatalog({
             products: [],
-            categories: []
+            categories: [],
+            events: []
           });
         }
       }
@@ -228,6 +231,7 @@ function App() {
           sessionError={sessionError}
           products={storefrontCatalog.products}
           categories={storefrontCatalog.categories}
+          events={storefrontCatalog.events}
           onAuthSuccess={async (token, user) => {
             window.localStorage.setItem("voidAuthToken", token);
             setIsSessionReady(false);
@@ -272,7 +276,7 @@ async function fetchAuthUser(token) {
   return data.user || null;
 }
 
-function Page({ authToken, categories, currentPath, isAdmin, isLoggedIn, isSessionReady, onAuthSuccess, onLogout, onRequireLogin, products, sessionError }) {
+function Page({ authToken, categories, currentPath, events, isAdmin, isLoggedIn, isSessionReady, onAuthSuccess, onLogout, onRequireLogin, products, sessionError }) {
   if (currentPath === "/login") {
     if (isLoggedIn) {
       window.location.hash = "#/account";
@@ -343,6 +347,17 @@ function Page({ authToken, categories, currentPath, isAdmin, isLoggedIn, isSessi
 
   if (currentPath === "/about") {
     return <AboutPage />;
+  }
+
+  if (currentPath === "/events") {
+    return (
+      <EventsPage
+        authToken={authToken}
+        events={events}
+        isLoggedIn={isLoggedIn}
+        onRequireLogin={onRequireLogin}
+      />
+    );
   }
 
   if (policyPages[currentPath]) {

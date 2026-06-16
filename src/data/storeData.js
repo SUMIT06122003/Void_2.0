@@ -71,8 +71,8 @@ const media = {
 export const routes = [
   { label: "Home", path: "/" },
   { label: "Shop", path: "/shop" },
-  { label: "About Us", path: "/about" },
-  { label: "Contact Us", path: "/contact" }
+  { label: "Events", path: "/events" },
+  { label: "Blog", path: "/blog" }
 ];
 
 export const utilityRoutes = [
@@ -82,6 +82,12 @@ export const utilityRoutes = [
 ];
 
 export const policyPages = {
+  "/blog": {
+    eyebrow: "Blog",
+    title: "VOID Journal",
+    body: "Product stories, training notes, launch updates, and activewear guides from VOID.",
+    details: ["Training and fit guides", "Product launch notes", "Brand updates"]
+  },
   "/contact": {
     eyebrow: "Contact Us",
     title: "We Are Here For You",

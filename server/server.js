@@ -32,10 +32,14 @@ app.post("/api/auth/otp/send", handleSendOtp);
 app.post("/api/auth/otp/verify", handleVerifyOtp);
 app.post("/api/auth/login", handleLogin);
 app.post("/api/auth/addresses", requireAuth, handleAddAddress);
+app.delete("/api/auth/addresses/:addressId", requireAuth, handleDeleteAddress);
 app.post("/api/orders", requireAuth, handleCreateOrder);
+app.post("/api/events/:eventId/register", requireAuth, handleRegisterEvent);
 app.get("/api/admin/dashboard", requireAuth, requireAdmin, handleAdminDashboard);
 app.get("/api/admin/catalog", requireAuth, requireAdmin, handleAdminCatalog);
 app.put("/api/admin/catalog", requireAuth, requireAdmin, handleSaveAdminCatalog);
+app.get("/api/admin/orders", requireAuth, requireAdmin, handleAdminOrders);
+app.put("/api/admin/orders/:orderId", requireAuth, requireAdmin, handleUpdateAdminOrder);
 app.post("/api/admin/uploads", requireAuth, requireAdmin, express.raw({ type: "image/*", limit: "8mb" }), handleAdminUpload);
 app.post("/api/otp/send", handleSendOtp);
 app.post("/api/otp/verify", handleVerifyOtp);
@@ -177,16 +181,28 @@ app.get("/api/auth/me", requireAuth, async (req, res) => {
 });
 
 async function handleAddAddress(req, res) {
-  const address = normalizeAddress(req.body.address);
   const label = String(req.body.label || "Home").trim().replace(/\s+/g, " ").slice(0, 40) || "Home";
+  const state = normalizeAddressPart(req.body.state, 80);
+  const district = normalizeAddressPart(req.body.district, 80);
+  const city = normalizeAddressPart(req.body.city, 80);
+  const pincode = String(req.body.pincode || req.body.zip || "").replace(/\D/g, "").slice(0, 6);
+  const fullAddress = normalizeAddressPart(req.body.fullAddress || req.body.line1 || req.body.address, 180);
+  const address = normalizeAddress(
+    req.body.address || [fullAddress, city, district, state, pincode].filter(Boolean).join(", ")
+  );
 
-  if (address.length < 8) {
-    return res.status(400).json({ message: "Enter a complete delivery address." });
+  if (!state || !district || !city || pincode.length !== 6 || fullAddress.length < 8 || address.length < 20) {
+    return res.status(400).json({ message: "Enter state, district, city, 6-digit pincode, and full address." });
   }
 
   const nextAddress = {
     id: crypto.randomUUID(),
     label,
+    state,
+    district,
+    city,
+    pincode,
+    fullAddress,
     address,
     createdAt: new Date().toISOString()
   };
@@ -199,6 +215,25 @@ async function handleAddAddress(req, res) {
   return res.status(201).json({
     message: "Address saved.",
     address: nextAddress,
+    user: toPublicUser(user)
+  });
+}
+
+async function handleDeleteAddress(req, res) {
+  const addressId = String(req.params.addressId || "").trim();
+
+  if (!addressId) {
+    return res.status(400).json({ message: "Choose an address to delete." });
+  }
+
+  const user = await removeAddressFromUser(req.user.sub, addressId);
+
+  if (!user) {
+    return res.status(404).json({ message: "Address not found." });
+  }
+
+  return res.json({
+    message: "Address deleted.",
     user: toPublicUser(user)
   });
 }
@@ -227,15 +262,46 @@ async function handleCreateOrder(req, res) {
   });
 }
 
+async function handleRegisterEvent(req, res) {
+  const eventId = String(req.params.eventId || "").trim();
+  const catalog = await readAdminCatalog();
+  const event = (catalog.events || []).find((entry) => String(entry.id || "") === eventId);
+
+  if (!event) {
+    return res.status(404).json({ message: "Event not found." });
+  }
+
+  if (!isPublicEvent(event)) {
+    return res.status(400).json({ message: "This event is not open for registration." });
+  }
+
+  if (!isSportsEvent(event)) {
+    return res.status(400).json({ message: "Only sports events are open for registration." });
+  }
+
+  const category = normalizeSportsCategory(req.body?.category, event);
+
+  if (!category) {
+    return res.status(400).json({ message: "Choose a valid sports category." });
+  }
+
+  const registration = normalizeEventRegistration(event, category);
+  const user = await addEventRegistrationToUser(req.user.sub, registration);
+
+  if (!user) {
+    return res.status(404).json({ message: "User not found." });
+  }
+
+  return res.status(201).json({
+    message: "Event registration saved.",
+    registration,
+    user: toPublicUser(user)
+  });
+}
+
 async function handleAdminDashboard(_req, res) {
   const [users, catalog] = await Promise.all([readAllUsers(), readAdminCatalog()]);
-  const orders = users.flatMap((user) =>
-    (Array.isArray(user.orders) ? user.orders : []).map((order) => ({
-      ...order,
-      customerName: user.name || user.mobile || "VOID customer",
-      customerMobile: user.mobile
-    }))
-  );
+  const orders = collectOrdersFromUsers(users);
   const totalRevenue = orders.reduce((sum, order) => sum + parseMoney(order.total || order.amount), 0);
   const pendingOrders = orders.filter((order) => getOrderStatus(order) === "pending").length;
   const refundRequests = users.reduce((sum, user) => sum + (Array.isArray(user.returns) ? user.returns.length : 0), 0);
@@ -250,11 +316,12 @@ async function handleAdminDashboard(_req, res) {
       refundRequests,
       lowStock: lowStock.length,
       activeCoupons: catalog.coupons.filter((coupon) => coupon.status === "Active").length,
-      products: catalog.products.length
+      products: catalog.products.length,
+      events: catalog.events.length
     },
     recentOrders: orders
-      .sort((first, second) => new Date(second.createdAt || 0) - new Date(first.createdAt || 0))
       .slice(0, 8),
+    orders,
     customers: users.map((user) => ({
       id: user.id,
       name: user.name || "VOID customer",
@@ -273,6 +340,31 @@ async function handleAdminCatalog(_req, res) {
   return res.json({ catalog: await readAdminCatalog() });
 }
 
+async function handleAdminOrders(_req, res) {
+  const users = await readAllUsers();
+  return res.json({ orders: collectOrdersFromUsers(users) });
+}
+
+async function handleUpdateAdminOrder(req, res) {
+  const orderId = String(req.params.orderId || "").trim();
+  const updates = normalizeOrderUpdate(req.body || {});
+
+  if (!orderId) {
+    return res.status(400).json({ message: "Order ID is required." });
+  }
+
+  const updatedOrder = await updateOrderById(orderId, updates);
+
+  if (!updatedOrder) {
+    return res.status(404).json({ message: "Order not found." });
+  }
+
+  return res.json({
+    message: "Order updated.",
+    order: updatedOrder
+  });
+}
+
 async function handlePublicCatalog(_req, res) {
   const catalog = await readAdminCatalog();
   const visibleCategories = catalog.categories.filter((category) =>
@@ -284,10 +376,12 @@ async function handlePublicCatalog(_req, res) {
     const category = String(product.category || "").toLowerCase();
     return status === "published" && (!visibleCategoryNames.size || visibleCategoryNames.has(category));
   });
+  const events = catalog.events.filter(isPublicEvent);
 
   return res.json({
     catalog: {
       products,
+      events,
       categories: visibleCategories,
       updatedAt: catalog.updatedAt
     }
@@ -481,6 +575,10 @@ function normalizeAddress(value) {
   return String(value || "").trim().replace(/\s+/g, " ").slice(0, 240);
 }
 
+function normalizeAddressPart(value, maxLength = 80) {
+  return String(value || "").trim().replace(/\s+/g, " ").slice(0, maxLength);
+}
+
 function normalizeOrder(body) {
   const now = new Date().toISOString();
   const items = Array.isArray(body.items)
@@ -515,6 +613,113 @@ function normalizeOrderItem(item) {
   };
 }
 
+function normalizeEventRegistration(event, category) {
+  const now = new Date().toISOString();
+  const feeType = getEventFeeType(event);
+
+  return {
+    id: `EVT-${crypto.randomBytes(3).toString("hex").toUpperCase()}`,
+    eventId: String(event.id || "").trim(),
+    eventName: String(event.name || event.eventName || "VOID Event").trim().slice(0, 120),
+    details: String(event.details || "").trim().slice(0, 240),
+    eventType: "Sports",
+    category,
+    feeType,
+    price: feeType === "Paid" ? String(event.price || "Paid").trim().slice(0, 40) : "Free",
+    paymentStatus: feeType === "Paid" ? "Payment Pending" : "Free",
+    status: "Registered",
+    createdAt: now,
+    updatedAt: now
+  };
+}
+
+function isPublicEvent(event) {
+  const status = String(event.status || "Published").toLowerCase();
+  return ["published", "active", "open"].includes(status);
+}
+
+function isSportsEvent(event) {
+  return getEventType(event) === "Sports";
+}
+
+function getEventType(event) {
+  return String(event.eventType || event.kind || "").toLowerCase() === "marketing" ? "Marketing" : "Sports";
+}
+
+function getSportsCategories(event) {
+  const categories = Array.isArray(event.sportsCategories)
+    ? event.sportsCategories
+    : String(event.sportsCategories || "Mixed, Mens, Womens")
+        .split(/\r?\n|,/)
+        .map((entry) => entry.trim())
+        .filter(Boolean);
+
+  return categories.length ? categories : ["Mixed", "Mens", "Womens"];
+}
+
+function normalizeSportsCategory(value, event) {
+  const requested = String(value || "").trim();
+  const categories = getSportsCategories(event);
+  return categories.find((category) => category.toLowerCase() === requested.toLowerCase()) || "";
+}
+
+function getEventFeeType(event) {
+  return String(event.feeType || event.type || "").toLowerCase() === "paid" ? "Paid" : "Free";
+}
+
+function normalizeOrderUpdate(body) {
+  const allowedStatuses = new Set(["Pending", "Processing", "Packed", "Shipped", "Delivered", "Cancelled", "Returned"]);
+  const requestedStatus = normalizeStatus(body.status || body.orderStatus);
+  const status = allowedStatuses.has(requestedStatus) ? requestedStatus : "Pending";
+
+  return {
+    status,
+    paymentStatus: normalizeStatus(body.paymentStatus || "Paid"),
+    trackingNumber: String(body.trackingNumber || "").trim().slice(0, 80),
+    courierPartner: String(body.courierPartner || "").trim().replace(/\s+/g, " ").slice(0, 80),
+    fulfillmentNote: String(body.fulfillmentNote || "").trim().replace(/\s+/g, " ").slice(0, 240),
+    expectedDelivery: String(body.expectedDelivery || "").trim().slice(0, 40)
+  };
+}
+
+function normalizeStatus(value) {
+  const text = String(value || "").trim().replace(/[-_]+/g, " ").replace(/\s+/g, " ");
+
+  if (!text) {
+    return "Pending";
+  }
+
+  return text
+    .split(" ")
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function mergeOrderUpdate(order, updates, updatedAt) {
+  return {
+    ...(order || {}),
+    ...updates,
+    updatedAt
+  };
+}
+
+function collectOrdersFromUsers(users) {
+  return users
+    .flatMap((user) => (Array.isArray(user.orders) ? user.orders : []).map((order) => toAdminOrder(order, user)))
+    .sort((first, second) => new Date(second.createdAt || 0) - new Date(first.createdAt || 0));
+}
+
+function toAdminOrder(order, user) {
+  return {
+    ...(order || {}),
+    userId: user.id,
+    customerName: order?.customer?.name || user.name || user.mobile || "VOID customer",
+    customerMobile: order?.customer?.phone || user.mobile,
+    accountMobile: user.mobile,
+    customerAddress: order?.shippingAddress || "Not available"
+  };
+}
+
 function normalizeAdminCatalog(value) {
   const catalog = value && typeof value === "object" ? value : {};
   const fallback = getDefaultAdminCatalog();
@@ -526,6 +731,7 @@ function normalizeAdminCatalog(value) {
     refunds: normalizeAdminList(catalog.refunds, fallback.refunds),
     coupons: normalizeAdminList(catalog.coupons, fallback.coupons),
     categories: normalizeAdminList(catalog.categories, fallback.categories),
+    events: normalizeAdminList(catalog.events, fallback.events),
     cms: normalizeAdminList(catalog.cms, fallback.cms),
     reviewVideos: normalizeAdminList(catalog.reviewVideos, fallback.reviewVideos),
     updatedAt: new Date().toISOString()
@@ -652,7 +858,8 @@ async function migrateJsonUsersToMongo(db) {
             notifications: Array.isArray(user.notifications) ? user.notifications : [],
             recentlyViewed: Array.isArray(user.recentlyViewed) ? user.recentlyViewed : [],
             returns: Array.isArray(user.returns) ? user.returns : [],
-            coupons: Array.isArray(user.coupons) ? user.coupons : []
+            coupons: Array.isArray(user.coupons) ? user.coupons : [],
+            eventRegistrations: Array.isArray(user.eventRegistrations) ? user.eventRegistrations : []
           }
         },
         upsert: true
@@ -726,6 +933,35 @@ async function addAddressToUser(userId, address) {
   }));
 }
 
+async function removeAddressFromUser(userId, addressId) {
+  const user = await findUserById(userId);
+  const addresses = Array.isArray(user?.addresses) ? user.addresses : [];
+  const nextAddresses = addresses.filter((address, index) => {
+    const savedId = String(address?.id || "").trim();
+    return savedId ? savedId !== addressId : String(index) !== addressId;
+  });
+
+  if (!user || nextAddresses.length === addresses.length) {
+    return null;
+  }
+
+  const db = await getDatabase();
+
+  if (db) {
+    const result = await db.collection("users").findOneAndUpdate(
+      { id: userId },
+      { $set: { addresses: nextAddresses } },
+      { returnDocument: "after" }
+    );
+    return cleanMongoUser(result);
+  }
+
+  return updateFileUser(userId, (currentUser) => ({
+    ...currentUser,
+    addresses: nextAddresses
+  }));
+}
+
 async function addOrderToUser(userId, order) {
   const db = await getDatabase();
 
@@ -749,6 +985,103 @@ async function addOrderToUser(userId, order) {
     ...user,
     orders: Array.isArray(user.orders) ? [order, ...user.orders] : [order]
   }));
+}
+
+async function addEventRegistrationToUser(userId, registration) {
+  const db = await getDatabase();
+
+  if (db) {
+    const user = cleanMongoUser(await db.collection("users").findOne({ id: userId }));
+
+    if (!user) {
+      return null;
+    }
+
+    const existingRegistrations = Array.isArray(user.eventRegistrations) ? user.eventRegistrations : [];
+    const existing = existingRegistrations.find((entry) => entry.eventId === registration.eventId);
+
+    if (existing) {
+      return user;
+    }
+
+    const result = await db.collection("users").findOneAndUpdate(
+      { id: userId },
+      {
+        $push: {
+          eventRegistrations: {
+            $each: [registration],
+            $position: 0
+          }
+        }
+      },
+      { returnDocument: "after" }
+    );
+    return cleanMongoUser(result);
+  }
+
+  return updateFileUser(userId, (user) => {
+    const eventRegistrations = Array.isArray(user.eventRegistrations) ? user.eventRegistrations : [];
+
+    if (eventRegistrations.some((entry) => entry.eventId === registration.eventId)) {
+      return user;
+    }
+
+    return {
+      ...user,
+      eventRegistrations: [registration, ...eventRegistrations]
+    };
+  });
+}
+
+async function updateOrderById(orderId, updates) {
+  const db = await getDatabase();
+  const now = new Date().toISOString();
+
+  if (db) {
+    const user = cleanMongoUser(await db.collection("users").findOne({ "orders.id": orderId }));
+
+    if (!user) {
+      return null;
+    }
+
+    const existingOrder = (Array.isArray(user.orders) ? user.orders : []).find((order) => order.id === orderId);
+    const nextOrder = mergeOrderUpdate(existingOrder, updates, now);
+
+    await db.collection("users").updateOne(
+      { id: user.id, "orders.id": orderId },
+      { $set: { "orders.$": nextOrder } }
+    );
+
+    return toAdminOrder(nextOrder, user);
+  }
+
+  const users = readUsersFromFile();
+  let updatedOrder = null;
+
+  const nextUsers = users.map((user) => {
+    const orders = Array.isArray(user.orders) ? user.orders : [];
+    const orderIndex = orders.findIndex((order) => order.id === orderId || order.orderId === orderId);
+
+    if (orderIndex < 0) {
+      return user;
+    }
+
+    const nextOrders = [...orders];
+    nextOrders[orderIndex] = mergeOrderUpdate(nextOrders[orderIndex], updates, now);
+    updatedOrder = toAdminOrder(nextOrders[orderIndex], user);
+
+    return {
+      ...user,
+      orders: nextOrders
+    };
+  });
+
+  if (!updatedOrder) {
+    return null;
+  }
+
+  writeUsersToFile(nextUsers);
+  return updatedOrder;
 }
 
 async function readAdminCatalog() {
@@ -866,6 +1199,26 @@ function getDefaultAdminCatalog() {
       { id: "coupon-stack", code: "GYMREADY", discount: "Rs. 150", status: "Draft", expires: "2026-09-30" }
     ],
     categories: [],
+    events: [
+      {
+        id: "event-training-club",
+        name: "VOID Training Club",
+        details: "Community workout and activewear fit session",
+        description: "A coached training meet for VOID members with product trials, fit guidance, and community challenges.",
+        eventType: "Sports",
+        sportsCategories: ["Mixed", "Mens", "Womens"],
+        image: "",
+        gallery: [],
+        feeType: "Free",
+        price: "Free",
+        date: "2026-07-20",
+        location: "Mumbai",
+        mixedWinner: "",
+        mensWinner: "",
+        womensWinner: "",
+        status: "Published"
+      }
+    ],
     cms: [
       { id: "cms-home-hero", page: "Home", block: "Hero", title: "Activewear for your next rep", status: "Published" },
       { id: "cms-refund", page: "Refund Policy", block: "Policy copy", title: "Returns and refunds", status: "Published" }
@@ -914,7 +1267,8 @@ function withAccountDefaults(user) {
     notifications: Array.isArray(user.notifications) ? user.notifications : [],
     recentlyViewed: Array.isArray(user.recentlyViewed) ? user.recentlyViewed : [],
     returns: Array.isArray(user.returns) ? user.returns : [],
-    coupons: Array.isArray(user.coupons) ? user.coupons : []
+    coupons: Array.isArray(user.coupons) ? user.coupons : [],
+    eventRegistrations: Array.isArray(user.eventRegistrations) ? user.eventRegistrations : []
   };
 }
 
@@ -934,7 +1288,8 @@ function toPublicUser(user) {
     notifications: safeUser.notifications,
     recentlyViewed: safeUser.recentlyViewed,
     returns: safeUser.returns,
-    coupons: safeUser.coupons
+    coupons: safeUser.coupons,
+    eventRegistrations: safeUser.eventRegistrations
   };
 }
 

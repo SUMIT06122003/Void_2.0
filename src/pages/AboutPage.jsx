@@ -1,4 +1,5 @@
 import { products, testimonials } from "../data/storeData";
+import { pauseOtherVideos } from "../utils/videoPlayback";
 
 function AboutPage() {
   const heroProducts = products.slice(0, 3);
@@ -39,7 +40,7 @@ function AboutPage() {
         </article>
       </div>
       <div className="about-review-video">
-        <video src={review.video} controls playsInline preload="metadata" />
+        <video src={review.video} controls playsInline preload="metadata" onPlay={pauseOtherVideos} />
         <div>
           <span>{review.name}</span>
           <h2>Real movement feedback</h2>

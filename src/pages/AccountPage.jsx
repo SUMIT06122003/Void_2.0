@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Trash2 } from "lucide-react";
 import { accountItems, products, testimonials } from "../data/storeData";
+import { pauseOtherVideos } from "../utils/videoPlayback";
 
 const emptyAccountData = {
   orders: [],
@@ -14,6 +15,7 @@ const emptyAccountData = {
 };
 
 const orderStatuses = ["Pending", "Processing", "Shipped", "Delivered", "Cancelled", "Returned"];
+const addressLabelOptions = ["Home", "Business", "Other"];
 
 const pageCopy = {
   dashboard: {
@@ -328,7 +330,7 @@ function DashboardOverview({ account }) {
           <span>Review Video</span>
           <h3>{displayName}</h3>
           <div className="account-review-mini">
-            <video src={featuredReview.video} controls playsInline preload="metadata" />
+            <video src={featuredReview.video} controls playsInline preload="metadata" onPlay={pauseOtherVideos} />
           </div>
           <p>Member since {formatDate(account.user?.createdAt)}. Watch real VOID feedback while tracking your account.</p>
         </article>
@@ -374,10 +376,21 @@ function ProfileDetails({ account }) {
 
 function AddAddressManager({ account, authToken, onAccountUpdate }) {
   const [label, setLabel] = useState("Home");
-  const [address, setAddress] = useState("");
+  const [addressForm, setAddressForm] = useState({
+    state: "",
+    district: "",
+    city: "",
+    pincode: "",
+    fullAddress: ""
+  });
   const [isSaving, setIsSaving] = useState(false);
+  const [deletingAddressId, setDeletingAddressId] = useState("");
   const [message, setMessage] = useState("");
   const addresses = Array.isArray(account.addresses) ? account.addresses : [];
+
+  const updateAddressField = (key, value) => {
+    setAddressForm((current) => ({ ...current, [key]: value }));
+  };
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -385,8 +398,17 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
 
     setMessage("");
 
-    if (address.trim().length < 8) {
-      setMessage("Enter a complete delivery address.");
+    const cleanedAddress = {
+      state: addressForm.state.trim(),
+      district: addressForm.district.trim(),
+      city: addressForm.city.trim(),
+      pincode: addressForm.pincode.replace(/\D/g, "").slice(0, 6),
+      fullAddress: addressForm.fullAddress.trim()
+    };
+    const deliveryAddress = formatAddress(cleanedAddress);
+
+    if (!cleanedAddress.state || !cleanedAddress.district || !cleanedAddress.city || cleanedAddress.pincode.length !== 6 || cleanedAddress.fullAddress.length < 8) {
+      setMessage("Enter state, district, city, 6-digit pincode, and full address.");
       return;
     }
 
@@ -399,7 +421,11 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
           Authorization: `Bearer ${authToken}`,
           "Content-Type": "application/json"
         },
-        body: JSON.stringify({ label, address })
+        body: JSON.stringify({
+          label,
+          ...cleanedAddress,
+          address: deliveryAddress
+        })
       });
       const data = await response.json().catch(() => ({}));
 
@@ -408,7 +434,13 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
       }
 
       onAccountUpdate(data.user);
-      setAddress("");
+      setAddressForm({
+        state: "",
+        district: "",
+        city: "",
+        pincode: "",
+        fullAddress: ""
+      });
       setLabel("Home");
       setMessage("Address saved. It will appear during checkout.");
     } catch (saveError) {
@@ -418,23 +450,78 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
     }
   };
 
+  const handleDelete = async (item, index) => {
+    const addressId = String(item.id || index);
+    if (deletingAddressId) return;
+
+    setDeletingAddressId(addressId);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/auth/addresses/${encodeURIComponent(addressId)}`, {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${authToken}`
+        }
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to delete address.");
+      }
+
+      onAccountUpdate(data.user);
+      setMessage("Address deleted.");
+    } catch (deleteError) {
+      setMessage(deleteError.message || "Unable to delete address.");
+    } finally {
+      setDeletingAddressId("");
+    }
+  };
+
   return (
     <div className="address-manager">
       <form className="address-form" onSubmit={handleSave}>
         <div className="form-field">
           <label>Address Label</label>
-          <input
-            value={label}
-            onChange={(event) => setLabel(event.target.value)}
-            placeholder="Home, Work, Gym"
-          />
+          <select value={label} onChange={(event) => setLabel(event.target.value)}>
+            {addressLabelOptions.map((option) => (
+              <option value={option} key={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="address-form-grid">
+          <div className="form-field">
+            <label>State</label>
+            <input value={addressForm.state} onChange={(event) => updateAddressField("state", event.target.value)} placeholder="Maharashtra" />
+          </div>
+          <div className="form-field">
+            <label>District</label>
+            <input value={addressForm.district} onChange={(event) => updateAddressField("district", event.target.value)} placeholder="Thane" />
+          </div>
+          <div className="form-field">
+            <label>City</label>
+            <input value={addressForm.city} onChange={(event) => updateAddressField("city", event.target.value)} placeholder="Mumbai" />
+          </div>
+          <div className="form-field">
+            <label>Pincode</label>
+            <input
+              inputMode="numeric"
+              maxLength={6}
+              value={addressForm.pincode}
+              onChange={(event) => updateAddressField("pincode", event.target.value.replace(/\D/g, "").slice(0, 6))}
+              placeholder="400610"
+            />
+          </div>
         </div>
         <div className="form-field">
-          <label>Delivery Address</label>
+          <label>Full Address</label>
           <textarea
-            value={address}
-            onChange={(event) => setAddress(event.target.value)}
-            placeholder="Flat / house, street, city, state, pincode"
+            value={addressForm.fullAddress}
+            onChange={(event) => updateAddressField("fullAddress", event.target.value)}
+            placeholder="Flat / house, building, street, landmark"
           />
         </div>
         {message ? <p className="address-form-message">{message}</p> : null}
@@ -445,13 +532,28 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
 
       <div className="account-list address-list">
         {addresses.length ? (
-          addresses.map((item, index) => (
-            <DetailCard
-              label={item.label || `Address ${index + 1}`}
-              value={formatAddress(item)}
-              key={item.id || item.address || index}
-            />
-          ))
+          addresses.map((item, index) => {
+            const addressId = String(item.id || index);
+
+            return (
+              <article className="detail-card address-card" key={item.id || item.address || index}>
+                <div>
+                  <span>{item.label || `Address ${index + 1}`}</span>
+                  <strong>{formatAddress(item)}</strong>
+                </div>
+                <button
+                  type="button"
+                  className="address-delete"
+                  onClick={() => handleDelete(item, index)}
+                  disabled={deletingAddressId === addressId}
+                  aria-label={`Delete ${item.label || `address ${index + 1}`}`}
+                >
+                  <Trash2 size={16} />
+                  <span>{deletingAddressId === addressId ? "Deleting" : "Delete"}</span>
+                </button>
+              </article>
+            );
+          })
         ) : (
           <div className="account-empty compact-empty">
             <span>No address saved</span>
@@ -465,17 +567,28 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
 }
 
 function OrderStatus({ orders }) {
+  const [selectedStatus, setSelectedStatus] = useState("All");
   const statusLabels = useMemo(
-    () => [...new Set([...orderStatuses, ...orders.map((order) => getOrderStatus(order))])],
+    () => ["All", ...new Set([...orderStatuses, ...orders.map((order) => getOrderStatus(order))])],
     [orders]
   );
-  const ordersByStatus = useMemo(
+  const statusCounts = useMemo(
     () =>
-      statusLabels.map((status) => ({
-        status,
-        orders: orders.filter((order) => getOrderStatus(order).toLowerCase() === status.toLowerCase())
-      })),
+      statusLabels.reduce((counts, status) => {
+        counts[status] =
+          status === "All"
+            ? orders.length
+            : orders.filter((order) => getOrderStatus(order).toLowerCase() === status.toLowerCase()).length;
+        return counts;
+      }, {}),
     [orders, statusLabels]
+  );
+  const visibleOrders = useMemo(
+    () =>
+      selectedStatus === "All"
+        ? orders
+        : orders.filter((order) => getOrderStatus(order).toLowerCase() === selectedStatus.toLowerCase()),
+    [orders, selectedStatus]
   );
 
   if (!orders.length) {
@@ -495,41 +608,67 @@ function OrderStatus({ orders }) {
     <div className="order-status-view">
       <div className="order-status-grid">
         <Metric label="All Orders" value={orders.length} />
-        {ordersByStatus.map(({ status, orders: statusOrders }) => (
-          <Metric label={status} value={statusOrders.length} key={status} />
+        {statusLabels.filter((status) => status !== "All").map((status) => (
+          <Metric label={status} value={statusCounts[status] || 0} key={status} />
         ))}
       </div>
 
-      {ordersByStatus.map(({ status, orders: statusOrders }) => (
-        <section className="order-status-section" key={status}>
-          <div className="section-heading compact-heading">
+      <div className="order-status-toolbar" aria-label="Order status filters">
+        {statusLabels.map((status) => (
+          <button
+            className={selectedStatus === status ? "is-active" : ""}
+            key={status}
+            onClick={() => setSelectedStatus(status)}
+            type="button"
+          >
             <span>{status}</span>
-            <h2>{statusOrders.length} Orders</h2>
+            <strong>{statusCounts[status] || 0}</strong>
+          </button>
+        ))}
+      </div>
+
+      <section className="order-status-section">
+        <div className="section-heading compact-heading">
+          <span>{selectedStatus}</span>
+          <h2>{visibleOrders.length} Orders</h2>
+        </div>
+        {visibleOrders.length ? (
+          <div className="order-list">
+            {visibleOrders.map((order) => (
+              <OrderCard order={order} key={order.id || order.orderId || JSON.stringify(order)} />
+            ))}
           </div>
-          {statusOrders.length ? (
-            <div className="order-list">
-              {statusOrders.map((order) => (
-                <OrderCard order={order} key={order.id || order.orderId || JSON.stringify(order)} />
-              ))}
-            </div>
-          ) : (
-            <p className="muted-line">No {status.toLowerCase()} orders.</p>
-          )}
-        </section>
-      ))}
+        ) : (
+          <p className="muted-line">No {selectedStatus.toLowerCase()} orders.</p>
+        )}
+      </section>
     </div>
   );
 }
 
 function OrderCard({ order }) {
-  const items = Array.isArray(order.items) ? order.items : [];
+  const items = getOrderItems(order);
+  const primaryItem = items[0];
 
   return (
     <article className="order-card">
-      <div>
+      <div className="order-card-media">
+        {primaryItem?.image ? <img src={primaryItem.image} alt={primaryItem.name} /> : <div>No photo</div>}
+      </div>
+      <div className="order-card-main">
         <span>{getOrderStatus(order)}</span>
         <h3>{order.id || order.orderId || "Order"}</h3>
-        <p>{items.length ? items.map((item) => item.name || item.title || "VOID item").join(", ") : "Order items not listed"}</p>
+        <div className="order-product-list">
+          {items.map((item, index) => (
+            <div className="order-product-row" key={`${item.name}-${index}`}>
+              {item.image ? <img src={item.image} alt="" /> : <div />}
+              <div>
+                <strong>{item.name}</strong>
+                {item.detail ? <small>{item.detail}</small> : null}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       <div className="order-meta">
         <strong>{order.total || order.amount || "Total unavailable"}</strong>
@@ -662,6 +801,33 @@ function getOrderStatus(order) {
   return String(order.status || order.orderStatus || "Pending");
 }
 
+function getOrderItems(order) {
+  const rawItems = Array.isArray(order.items) && order.items.length
+    ? order.items
+    : [{ name: order.product || order.name || order.title || "VOID item", image: order.image }];
+
+  return rawItems.map((item) => {
+    const name = item.name || item.product || item.title || "VOID item";
+    const catalogProduct = findCatalogProduct(name);
+    const selections = item.selections && typeof item.selections === "object" ? Object.values(item.selections).filter(Boolean) : [];
+
+    return {
+      name,
+      image: item.image || catalogProduct?.image || catalogProduct?.gallery?.[0] || "",
+      detail: item.detail || item.variant || item.size || selections.join(" / ")
+    };
+  });
+}
+
+function findCatalogProduct(name) {
+  const normalizedName = String(name || "").trim().toLowerCase();
+
+  return products.find((product) => {
+    const productName = product.name.toLowerCase();
+    return productName === normalizedName || productName.includes(normalizedName) || normalizedName.includes(productName);
+  });
+}
+
 function formatDate(value) {
   if (!value) {
     return "Not available";
@@ -686,7 +852,15 @@ function formatAddress(address) {
   return (
     address.address ||
     address.value ||
-    [address.line1, address.line2, address.city, address.state, address.pincode || address.zip]
+    [
+      address.fullAddress,
+      address.line1,
+      address.line2,
+      address.city,
+      address.district,
+      address.state,
+      address.pincode || address.zip
+    ]
       .filter(Boolean)
       .join(", ") ||
     "Not available"

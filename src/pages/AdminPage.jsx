@@ -2,9 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import {
   BarChart3,
   Boxes,
+  CalendarDays,
   FileText,
   Film,
   ImagePlus,
+  PackageCheck,
   PackageSearch,
   Percent,
   Plus,
@@ -17,9 +19,12 @@ import {
   Users
 } from "lucide-react";
 import { products as assetProducts, testimonials as assetReviewVideos } from "../data/storeData";
+import { pauseOtherVideos } from "../utils/videoPlayback";
 
 const sections = [
   { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "orders", label: "Orders", icon: PackageCheck },
+  { id: "events", label: "Events", icon: CalendarDays },
   { id: "products", label: "Products", icon: PackageSearch },
   { id: "inventory", label: "Inventory", icon: Boxes },
   { id: "shipping", label: "Shipping", icon: Truck },
@@ -33,6 +38,7 @@ const sections = [
 
 const editableSections = new Set([
   "products",
+  "events",
   "inventory",
   "shipping",
   "refunds",
@@ -45,10 +51,12 @@ const editableSections = new Set([
 const emptyDashboard = {
   metrics: {},
   recentOrders: [],
+  orders: [],
   customers: [],
   lowStock: [],
   catalog: {
     products: [],
+    events: [],
     inventory: [],
     shipping: [],
     refunds: [],
@@ -93,7 +101,8 @@ function AdminPage({ authToken }) {
       { label: "Refunds", value: dashboard.metrics.refundRequests || 0 },
       { label: "Low Stock", value: dashboard.metrics.lowStock || 0 },
       { label: "Coupons", value: dashboard.metrics.activeCoupons || 0 },
-      { label: "Products", value: dashboard.metrics.products || 0 }
+      { label: "Products", value: dashboard.metrics.products || 0 },
+      { label: "Events", value: dashboard.metrics.events || 0 }
     ],
     [dashboard.metrics]
   );
@@ -301,16 +310,17 @@ function AdminSection({ activeSection, authToken, catalog, dashboard, metrics, o
             </article>
           ))}
         </div>
-        <div className="admin-grid-two">
-          <AdminReadTable title="Recent Orders" rows={dashboard.recentOrders} emptyText="No orders saved yet." />
-          <AdminReadTable title="Low Stock" rows={dashboard.lowStock} emptyText="No low-stock products." />
-        </div>
+        <AdminReadTable title="Low Stock" rows={dashboard.lowStock} emptyText="No low-stock products." />
       </div>
     );
   }
 
   if (activeSection === "customers") {
     return <AdminReadTable title="Customers" rows={dashboard.customers} emptyText="No customer accounts yet." />;
+  }
+
+  if (activeSection === "orders") {
+    return <OrderManager authToken={authToken} orders={dashboard.orders || []} />;
   }
 
   if (activeSection === "products") {
@@ -349,6 +359,7 @@ function AdminSection({ activeSection, authToken, catalog, dashboard, metrics, o
 
   return (
     <EditableCollection
+      authToken={authToken}
       items={catalog[activeSection] || []}
       sectionId={activeSection}
       title={sections.find((section) => section.id === activeSection)?.label || "Admin"}
@@ -356,6 +367,223 @@ function AdminSection({ activeSection, authToken, catalog, dashboard, metrics, o
       onRemove={onRemove}
       onUpdate={onUpdate}
     />
+  );
+}
+
+const orderStatusOptions = ["Pending", "Processing", "Packed", "Shipped", "Delivered", "Cancelled", "Returned"];
+const paymentStatusOptions = ["Paid", "Pending", "Refunded", "Failed"];
+
+function OrderManager({ authToken, orders }) {
+  const [managedOrders, setManagedOrders] = useState([]);
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState("");
+  const [savingOrderId, setSavingOrderId] = useState("");
+  const [notice, setNotice] = useState("");
+
+  useEffect(() => {
+    setManagedOrders(Array.isArray(orders) ? orders : []);
+  }, [orders]);
+
+  const statusCounts = useMemo(() => {
+    const counts = { All: managedOrders.length };
+    for (const status of orderStatusOptions) {
+      counts[status] = managedOrders.filter((order) => getOrderStatus(order).toLowerCase() === status.toLowerCase()).length;
+    }
+    return counts;
+  }, [managedOrders]);
+
+  const visibleOrders = useMemo(
+    () =>
+      managedOrders.filter((order) => {
+        const matchesStatus =
+          statusFilter === "All" || getOrderStatus(order).toLowerCase() === statusFilter.toLowerCase();
+        const matchesDate = !dateFilter || getOrderDateValue(order) === dateFilter;
+
+        return matchesStatus && matchesDate;
+      }),
+    [dateFilter, managedOrders, statusFilter]
+  );
+
+  const updateDraft = (orderId, key, value) => {
+    setManagedOrders((current) =>
+      current.map((order) => (getOrderId(order) === orderId ? { ...order, [key]: value } : order))
+    );
+  };
+
+  const saveOrder = async (order) => {
+    const orderId = getOrderId(order);
+    if (!orderId || savingOrderId) return;
+
+    setSavingOrderId(orderId);
+    setNotice("");
+
+    try {
+      const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          status: order.status,
+          paymentStatus: order.paymentStatus,
+          trackingNumber: order.trackingNumber,
+          courierPartner: order.courierPartner,
+          expectedDelivery: order.expectedDelivery,
+          fulfillmentNote: order.fulfillmentNote
+        })
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(data.message || "Unable to update order.");
+      }
+
+      setManagedOrders((current) =>
+        current.map((entry) => (getOrderId(entry) === orderId ? { ...entry, ...data.order } : entry))
+      );
+      setNotice(`Updated ${orderId}.`);
+    } catch (error) {
+      setNotice(error.message || "Unable to update order.");
+    } finally {
+      setSavingOrderId("");
+    }
+  };
+
+  if (!managedOrders.length) {
+    return (
+      <div className="account-empty">
+        <span>Orders</span>
+        <h3>No orders yet</h3>
+        <p>Placed orders will appear here for status, tracking, and fulfillment updates.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="admin-order-manager">
+      <div className="admin-editor-head">
+        <div>
+          <span>Order Management</span>
+          <h2>{visibleOrders.length} orders</h2>
+        </div>
+        {notice ? <p className="admin-inline-notice">{notice}</p> : null}
+      </div>
+
+      <div className="admin-order-tools">
+        <div className="admin-order-filters" aria-label="Order status filters">
+          {["All", ...orderStatusOptions].map((status) => (
+            <button
+              type="button"
+              className={statusFilter === status ? "is-active" : ""}
+              onClick={() => setStatusFilter(status)}
+              key={status}
+            >
+              <span>{status}</span>
+              <strong>{statusCounts[status] || 0}</strong>
+            </button>
+          ))}
+        </div>
+        <label className="admin-date-filter">
+          <span>Date</span>
+          <input type="date" value={dateFilter} onChange={(event) => setDateFilter(event.target.value)} />
+        </label>
+        {dateFilter || statusFilter !== "All" ? (
+          <button
+            type="button"
+            className="admin-clear-filter"
+            onClick={() => {
+              setStatusFilter("All");
+              setDateFilter("");
+            }}
+          >
+            Clear
+          </button>
+        ) : null}
+      </div>
+
+      <div className="admin-order-list">
+        {visibleOrders.length ? (
+          visibleOrders.map((order) => {
+            const orderId = getOrderId(order);
+            const items = Array.isArray(order.items) ? order.items : [];
+
+            return (
+              <article className="admin-order-card" key={orderId}>
+                <div className="admin-order-summary">
+                  <div>
+                    <span>{formatDate(order.createdAt)}</span>
+                    <h3>{orderId}</h3>
+                    <p>{items.length ? items.map((item) => item.name || item.product || "VOID item").join(", ") : "No items listed"}</p>
+                  </div>
+                  <strong>{order.total || order.amount || "Total unavailable"}</strong>
+                </div>
+
+                <div className="admin-order-detail-grid">
+                  <DetailLine label="Customer" value={order.customerName || order.customer?.name} />
+                  <DetailLine label="Mobile" value={order.customerMobile || order.accountMobile || order.customer?.phone} />
+                  <DetailLine label="Address" value={order.customerAddress || order.shippingAddress} />
+                  <DetailLine label="Payment" value={order.paymentMethod || "Demo payment"} />
+                </div>
+
+                <div className="admin-order-form-grid">
+                  <label className="admin-form-field">
+                    <span>Status</span>
+                    <select value={normalizeOrderStatus(order.status)} onChange={(event) => updateDraft(orderId, "status", event.target.value)}>
+                      {orderStatusOptions.map((status) => (
+                        <option value={status} key={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="admin-form-field">
+                    <span>Payment Status</span>
+                    <select value={order.paymentStatus || "Paid"} onChange={(event) => updateDraft(orderId, "paymentStatus", event.target.value)}>
+                      {paymentStatusOptions.map((status) => (
+                        <option value={status} key={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <AdminField label="Courier" value={order.courierPartner} onChange={(value) => updateDraft(orderId, "courierPartner", value)} />
+                  <AdminField label="Tracking" value={order.trackingNumber} onChange={(value) => updateDraft(orderId, "trackingNumber", value)} />
+                  <AdminField label="ETA" value={order.expectedDelivery} onChange={(value) => updateDraft(orderId, "expectedDelivery", value)} />
+                  <AdminField isWide label="Fulfillment Note" value={order.fulfillmentNote} onChange={(value) => updateDraft(orderId, "fulfillmentNote", value)} />
+                </div>
+
+                <div className="admin-order-actions">
+                  <button
+                    type="button"
+                    className="primary-link dark-link"
+                    onClick={() => saveOrder(order)}
+                    disabled={savingOrderId === orderId}
+                  >
+                    {savingOrderId === orderId ? "Saving..." : "Save Order"}
+                  </button>
+                </div>
+              </article>
+            );
+          })
+        ) : (
+          <div className="account-empty compact">
+            <span>Orders</span>
+            <h3>No matching orders</h3>
+            <p>Try another status or date.</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function DetailLine({ label, value }) {
+  return (
+    <div className="admin-order-detail">
+      <span>{label}</span>
+      <strong>{value || "Not available"}</strong>
+    </div>
   );
 }
 
@@ -402,7 +630,7 @@ function LocalReviewMedia() {
       <div className="admin-review-media-grid">
         {reviewVideoAssets.map((review) => (
           <article className="admin-review-preview" key={review.video}>
-            <video src={review.video} controls playsInline preload="metadata" />
+            <video src={review.video} controls playsInline preload="metadata" onPlay={pauseOtherVideos} />
             <div>
               <strong>{review.title}</strong>
               <span>{review.product}</span>
@@ -426,6 +654,10 @@ function EditableCollection({ authToken = "", categories = [], items, sectionId,
         onUpdate={onUpdate}
       />
     );
+  }
+
+  if (sectionId === "events") {
+    return <EventEditor authToken={authToken} items={items} onAdd={onAdd} onRemove={onRemove} onUpdate={onUpdate} />;
   }
 
   const keys = getKeys(items, getTemplate(sectionId));
@@ -473,6 +705,180 @@ function EditableCollection({ authToken = "", categories = [], items, sectionId,
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function EventEditor({ authToken = "", items, onAdd, onRemove, onUpdate }) {
+  const handleEventPhoto = async (itemIndex, file) => {
+    if (!file) return;
+    const image = await uploadImageFile(file, authToken);
+    if (image) {
+      onUpdate("events", itemIndex, "image", image);
+    }
+  };
+
+  const handleEventGallery = async (itemIndex, files) => {
+    const images = await Promise.all(Array.from(files || []).map((file) => uploadImageFile(file, authToken)));
+    const currentGallery = Array.isArray(items[itemIndex]?.gallery)
+      ? items[itemIndex].gallery
+      : splitAdminList(items[itemIndex]?.gallery);
+    onUpdate("events", itemIndex, "gallery", [...currentGallery, ...images.filter(Boolean)]);
+  };
+
+  const removeEventGalleryPhoto = (itemIndex, photoIndex) => {
+    const currentGallery = Array.isArray(items[itemIndex]?.gallery)
+      ? items[itemIndex].gallery
+      : splitAdminList(items[itemIndex]?.gallery);
+    onUpdate(
+      "events",
+      itemIndex,
+      "gallery",
+      currentGallery.filter((_, index) => index !== photoIndex)
+    );
+  };
+
+  const updateSportsCategories = (itemIndex, values) => {
+    onUpdate("events", itemIndex, "sportsCategories", values.map((value) => String(value || "")));
+  };
+
+  return (
+    <div className="admin-editor event-editor">
+      <div className="admin-editor-head">
+        <div>
+          <span>Events</span>
+          <h2>{items.length} records</h2>
+        </div>
+        <button type="button" className="primary-link dark-link" onClick={() => onAdd("events")}>
+          Add Event
+        </button>
+      </div>
+
+      <div className="event-editor-list">
+        {items.map((item, index) => {
+          const isPaid = String(item.feeType || "").toLowerCase() === "paid";
+          const isSports = getEventType(item) === "Sports";
+          const gallery = Array.isArray(item.gallery) ? item.gallery : splitAdminList(item.gallery);
+          const sportsCategories = getEditableList(item.sportsCategories).length
+            ? getEditableList(item.sportsCategories)
+            : ["Mixed", "Mens", "Womens"];
+
+          return (
+            <article className="event-editor-card" key={item.id || index}>
+              <div className="event-editor-title">
+                <div>
+                  <span>{`${getEventType(item)} / ${isPaid ? "Paid" : "Free"}`}</span>
+                  <h3>{item.name || "New Event"}</h3>
+                </div>
+                <button type="button" className="admin-delete" onClick={() => onRemove("events", index)}>
+                  Remove
+                </button>
+              </div>
+
+              <div className="event-photo-editor">
+                <div className="event-main-photo">
+                  {item.image ? (
+                    <img src={item.image} alt={item.name || "Event"} />
+                  ) : (
+                    <div className="admin-photo-placeholder">
+                      <ImagePlus size={24} />
+                      <span>Event photo</span>
+                    </div>
+                  )}
+                  <label className="admin-upload-button">
+                    <Upload size={15} />
+                    Upload Photo
+                    <input accept="image/*" type="file" onChange={(event) => handleEventPhoto(index, event.target.files?.[0])} />
+                  </label>
+                </div>
+
+                <div className="admin-gallery-editor event-gallery-editor">
+                  <div className="admin-gallery-head">
+                    <strong>Event gallery</strong>
+                    <label className="admin-upload-button compact">
+                      <Upload size={14} />
+                      Add Photos
+                      <input accept="image/*" multiple type="file" onChange={(event) => handleEventGallery(index, event.target.files)} />
+                    </label>
+                  </div>
+                  {gallery.length ? (
+                    <div className="admin-gallery-strip">
+                      {gallery.map((photo, photoIndex) => (
+                        <div className="admin-gallery-thumb" key={`${photo.slice(0, 40)}-${photoIndex}`}>
+                          <img src={photo} alt="" />
+                          <button type="button" onClick={() => removeEventGalleryPhoto(index, photoIndex)} aria-label="Remove event photo">
+                            <Trash2 size={14} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="admin-empty-line">Add event photos for the public event page.</p>
+                  )}
+                </div>
+              </div>
+
+              <div className="event-editor-grid">
+                <AdminField label="Event Name" value={item.name} onChange={(value) => onUpdate("events", index, "name", value)} />
+                <AdminField label="Details" value={item.details} onChange={(value) => onUpdate("events", index, "details", value)} />
+                <AdminField label="Date" type="date" value={item.date} onChange={(value) => onUpdate("events", index, "date", value)} />
+                <AdminField label="Location" value={item.location} onChange={(value) => onUpdate("events", index, "location", value)} />
+                <label className="admin-form-field">
+                  <span>Event Purpose</span>
+                  <select value={getEventType(item)} onChange={(event) => onUpdate("events", index, "eventType", event.target.value)}>
+                    <option value="Marketing">Marketing</option>
+                    <option value="Sports">Sports</option>
+                  </select>
+                </label>
+                <label className="admin-form-field">
+                  <span>Payment Type</span>
+                  <select value={item.feeType || "Free"} onChange={(event) => onUpdate("events", index, "feeType", event.target.value)}>
+                    <option value="Free">Free</option>
+                    <option value="Paid">Paid</option>
+                  </select>
+                </label>
+                <AdminField label="Price" value={isPaid ? item.price : "Free"} onChange={(value) => onUpdate("events", index, "price", value)} />
+                <label className="admin-form-field">
+                  <span>Status</span>
+                  <select value={item.status || "Draft"} onChange={(event) => onUpdate("events", index, "status", event.target.value)}>
+                    <option value="Published">Published</option>
+                    <option value="Draft">Draft</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </label>
+                <AdminField isWide label="Description" value={item.description} onChange={(value) => onUpdate("events", index, "description", value)} />
+              </div>
+
+              {isSports ? (
+                <div className="event-sports-editor">
+                  <AdminOptionList
+                    label="Sports Categories"
+                    values={sportsCategories}
+                    onAdd={() => updateSportsCategories(index, [...sportsCategories, ""])}
+                    onChange={(optionIndex, value) => {
+                      const values = [...sportsCategories];
+                      values[optionIndex] = value;
+                      updateSportsCategories(index, values);
+                    }}
+                    onRemove={(optionIndex) =>
+                      updateSportsCategories(
+                        index,
+                        sportsCategories.filter((_, categoryIndex) => categoryIndex !== optionIndex)
+                      )
+                    }
+                  />
+                  <div className="event-winner-grid">
+                    <AdminField label="Mixed Winner" value={item.mixedWinner} onChange={(value) => onUpdate("events", index, "mixedWinner", value)} />
+                    <AdminField label="Mens Winner" value={item.mensWinner} onChange={(value) => onUpdate("events", index, "mensWinner", value)} />
+                    <AdminField label="Womens Winner" value={item.womensWinner} onChange={(value) => onUpdate("events", index, "womensWinner", value)} />
+                    <AdminField isWide label="Winner Notes" value={item.winnerNotes} onChange={(value) => onUpdate("events", index, "winnerNotes", value)} />
+                  </div>
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
       </div>
     </div>
   );
@@ -757,6 +1163,24 @@ function getTemplate(sectionId) {
       status: "Draft",
       sku: "VOID-NEW"
     },
+    events: {
+      name: "New Event",
+      details: "Short event detail",
+      description: "Describe the event, what users get, and who it is for.",
+      eventType: "Sports",
+      sportsCategories: ["Mixed", "Mens", "Womens"],
+      image: "",
+      gallery: [],
+      feeType: "Free",
+      price: "Free",
+      date: "",
+      location: "Mumbai",
+      mixedWinner: "",
+      mensWinner: "",
+      womensWinner: "",
+      winnerNotes: "",
+      status: "Draft"
+    },
     inventory: { sku: "VOID-NEW", product: "New Product", stock: 0, reorderAt: 5, location: "Mumbai" },
     shipping: { zone: "New Zone", partner: "Manual Dispatch", fee: "Free", eta: "3-6 days", status: "Draft" },
     refunds: { type: "Refund rule", rule: "Describe policy", status: "Draft" },
@@ -788,6 +1212,58 @@ function formatValue(value) {
   }
 
   return value || "Not available";
+}
+
+function getOrderId(order) {
+  return String(order?.id || order?.orderId || "").trim();
+}
+
+function getOrderStatus(order) {
+  return normalizeOrderStatus(order?.status || order?.orderStatus);
+}
+
+function getOrderDateValue(order) {
+  const rawDate = order?.createdAt || order?.date || order?.updatedAt;
+
+  if (!rawDate) {
+    return "";
+  }
+
+  const date = new Date(rawDate);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const offsetDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+  return offsetDate.toISOString().slice(0, 10);
+}
+
+function getEventType(event) {
+  return String(event?.eventType || event?.kind || "").toLowerCase() === "marketing" ? "Marketing" : "Sports";
+}
+
+function normalizeOrderStatus(value) {
+  const status = String(value || "Pending").trim();
+  return orderStatusOptions.find((option) => option.toLowerCase() === status.toLowerCase()) || "Pending";
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Not available";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "Not available";
+  }
+
+  return new Intl.DateTimeFormat("en-IN", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric"
+  }).format(date);
 }
 
 function getProductAsset(item) {

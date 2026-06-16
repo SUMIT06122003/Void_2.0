@@ -519,7 +519,15 @@ function formatAddress(address) {
   return (
     address.address ||
     address.value ||
-    [address.line1, address.line2, address.city, address.state, address.pincode || address.zip]
+    [
+      address.fullAddress,
+      address.line1,
+      address.line2,
+      address.city,
+      address.district,
+      address.state,
+      address.pincode || address.zip
+    ]
       .filter(Boolean)
       .join(", ")
   );

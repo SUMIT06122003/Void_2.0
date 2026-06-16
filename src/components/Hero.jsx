@@ -34,6 +34,20 @@ function Hero() {
             Explore Gear
           </a>
         </div>
+        <div className="hero-product-switcher" aria-label="Featured products">
+          {heroProducts.map((product, index) => (
+            <button
+              aria-pressed={index === activeIndex}
+              className={index === activeIndex ? "is-active" : ""}
+              key={product.name}
+              onClick={() => setActiveIndex(index)}
+              type="button"
+            >
+              <img src={product.gallery?.[0] || product.image} alt="" />
+              <span>{product.category}</span>
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="hero-media">

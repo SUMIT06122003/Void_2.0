@@ -2,66 +2,48 @@ import { useEffect, useMemo, useState } from "react";
 import Hero from "../components/Hero";
 import Testimonials from "../components/Testimonials";
 import WhyChooseVoid from "../components/WhyChooseVoid";
-import { products as fallbackProducts, testimonials } from "../data/storeData";
+import { products as fallbackProducts } from "../data/storeData";
 
 function HomePage({ products = fallbackProducts }) {
   return (
     <>
       <Hero />
-      <HomeStats />
+      <HomeExperienceBand />
       <WhyChooseVoid />
       <ProductVisualsAndBenefits products={products} />
-      <HomeReviewSpotlight />
       <Testimonials />
     </>
   );
 }
 
-function HomeStats() {
-  const stats = [
-    { value: "4", label: "Core drops" },
-    { value: "24/7", label: "Daily wear ready" },
-    { value: "4.5+", label: "Customer rating" },
+function HomeExperienceBand() {
+  const items = [
+    {
+      kicker: "Fit",
+      title: "Made to move clean",
+      text: "Cuts, hems, and stretch points are chosen for training range without looking loud."
+    },
+    {
+      kicker: "Feel",
+      title: "Soft where it matters",
+      text: "Every core piece is selected to feel easy during warmups, commutes, and long wear."
+    },
+    {
+      kicker: "Flow",
+      title: "Fast buying, clear tracking",
+      text: "Saved addresses, order status, and account tools stay close after checkout."
+    }
   ];
 
   return (
-    <section className="home-stats" aria-label="VOID store highlights">
-      {stats.map((stat) => (
-        <article key={stat.label}>
-          <strong>{stat.value}</strong>
-          <span>{stat.label}</span>
+    <section className="home-experience-band" aria-label="VOID shopping experience">
+      {items.map((item) => (
+        <article key={item.title}>
+          <span>{item.kicker}</span>
+          <strong>{item.title}</strong>
+          <p>{item.text}</p>
         </article>
       ))}
-      <a href="#/shop">Build your kit</a>
-    </section>
-  );
-}
-
-function HomeReviewSpotlight() {
-  const featuredReview = testimonials[0];
-  const supportingReviews = testimonials.slice(1, 4);
-
-  return (
-    <section className="home-review-spotlight">
-      <div className="review-spotlight-video">
-        <video src={featuredReview.video} controls playsInline preload="metadata" />
-      </div>
-      <div className="review-spotlight-copy">
-        <span>Review Videos</span>
-        <h2>See the kit moving before you buy.</h2>
-        <p>Real customer videos from the VOID asset library, shown right inside the storefront.</p>
-        <div className="review-spotlight-list">
-          {supportingReviews.map((review) => (
-            <article key={review.video}>
-              <video src={review.video} muted playsInline preload="metadata" />
-              <div>
-                <strong>{review.name}</strong>
-                <span>{review.detail}</span>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
     </section>
   );
 }
@@ -90,7 +72,7 @@ function ProductVisualsAndBenefits({ products: sectionProducts }) {
     <section className="products-section home-visual-benefits" id="home-showcase">
       <div className="section-heading">
         <span>Built for movement. Designed for stillness.</span>
-        <h2>Tap through the VOID training kit</h2>
+        <h2>Stay inside the kit before you buy</h2>
         <a href="#/shop">View All</a>
       </div>
 
@@ -118,7 +100,7 @@ function ProductVisualsAndBenefits({ products: sectionProducts }) {
                   <div className="visual-benefits-copy">
                     <span>{product.category}</span>
                     <h3>{product.name}</h3>
-                    <p className="home-benefit-sub">Performance you can feel, built for training and daily wear.</p>
+                    <p className="home-benefit-sub">Inspect the fit, details, price, and training use before you move to checkout.</p>
 
                     {benefitList.length ? (
                       <ul className="home-benefit-list">
