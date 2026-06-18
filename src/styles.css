@@ -15726,11 +15726,14 @@ body {
   }
 
   .void-hero-copy h1 {
-    max-width: 10.8ch !important;
+    font-size: clamp(35px, 10.8vw, 44px) !important;
+    line-height: 0.96 !important;
+    max-width: 100% !important;
   }
 
   .void-hero-copy p {
-    max-width: 25ch !important;
+    font-size: 13px !important;
+    max-width: min(30ch, 100%) !important;
   }
 
   .void-hero-media {
