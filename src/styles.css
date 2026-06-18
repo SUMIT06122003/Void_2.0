@@ -15736,6 +15736,14 @@ body {
     max-width: min(30ch, 100%) !important;
   }
 
+  .void-hero-copy span {
+    display: block !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    text-align: center !important;
+    width: 100% !important;
+  }
+
   .void-hero-media {
     align-self: start !important;
     grid-column: 1 !important;
