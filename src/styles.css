@@ -15711,12 +15711,12 @@ body {
   .void-hero-copy {
     align-self: start !important;
     max-width: 178px !important;
-    padding: clamp(82px, 11svh, 112px) 0 0 8px !important;
+    padding: clamp(54px, 7svh, 82px) 0 0 8px !important;
   }
 
   .void-hero-media {
     align-self: start !important;
-    margin-top: clamp(250px, 34svh, 310px) !important;
+    margin-top: clamp(360px, 48svh, 430px) !important;
     top: 124px !important;
     transform: translateY(-28px) !important;
   }
@@ -15743,7 +15743,7 @@ body {
   }
 
   .void-hero-media {
-    margin-top: clamp(232px, 32svh, 286px) !important;
+    margin-top: clamp(330px, 46svh, 390px) !important;
     top: 120px !important;
     transform: translateY(-24px) !important;
   }
