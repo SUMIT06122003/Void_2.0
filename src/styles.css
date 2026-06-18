@@ -15703,29 +15703,35 @@ body {
   }
 
   .void-hero {
-    grid-template-columns: minmax(120px, 0.78fr) minmax(0, 1.22fr) !important;
+    grid-template-columns: 1fr !important;
     grid-template-rows: minmax(calc(100svh - 76px), auto) auto !important;
     min-height: calc(100svh + 132px) !important;
   }
 
   .void-hero-copy {
     align-self: start !important;
-    max-width: 178px !important;
-    padding: clamp(54px, 7svh, 82px) 0 0 8px !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    max-width: min(248px, 68vw) !important;
+    padding: clamp(54px, 7svh, 82px) 0 0 16px !important;
   }
 
   .void-hero-media {
     align-self: start !important;
-    margin-top: clamp(360px, 48svh, 430px) !important;
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+    justify-content: flex-end !important;
+    margin-top: clamp(382px, 51svh, 454px) !important;
+    padding-right: 0 !important;
     top: 124px !important;
     transform: translateY(-28px) !important;
   }
 
   .void-hero-media img {
     animation: mobileVoidBoxFloat 10.5s ease-in-out infinite !important;
-    max-height: min(338px, 48vh) !important;
+    max-height: min(390px, 46vh) !important;
     will-change: transform !important;
-    width: min(330px, 65vw) !important;
+    width: min(430px, 86vw) !important;
   }
 }
 
@@ -15737,13 +15743,13 @@ body {
 
   .void-hero-media img {
     animation: mobileVoidBoxFloat 10.5s ease-in-out infinite !important;
-    max-height: min(298px, 45vh) !important;
+    max-height: min(350px, 44vh) !important;
     will-change: transform !important;
-    width: min(290px, 65vw) !important;
+    width: min(380px, 88vw) !important;
   }
 
   .void-hero-media {
-    margin-top: clamp(330px, 46svh, 390px) !important;
+    margin-top: clamp(360px, 50svh, 420px) !important;
     top: 120px !important;
     transform: translateY(-24px) !important;
   }
