@@ -15683,19 +15683,19 @@ body {
 
   .void-hero {
     grid-template-columns: minmax(120px, 0.78fr) minmax(0, 1.22fr) !important;
-    grid-template-rows: minmax(430px, 72svh) auto !important;
-    min-height: calc(82svh + 132px) !important;
+    grid-template-rows: minmax(360px, 58svh) auto !important;
+    min-height: calc(68svh + 132px) !important;
   }
 
   .void-hero-copy {
     align-self: end !important;
     max-width: 178px !important;
-    padding: 0 0 42px 8px !important;
+    padding: 0 0 22px 8px !important;
   }
 
   .void-hero-media {
     align-self: end !important;
-    top: 74px !important;
+    top: 58px !important;
   }
 
   .void-hero-media img {
@@ -15706,8 +15706,8 @@ body {
 
 @media (max-width: 380px) {
   .void-hero {
-    grid-template-rows: minmax(400px, 70svh) auto !important;
-    min-height: calc(80svh + 118px) !important;
+    grid-template-rows: minmax(340px, 56svh) auto !important;
+    min-height: calc(66svh + 118px) !important;
   }
 
   .void-hero-media img {
