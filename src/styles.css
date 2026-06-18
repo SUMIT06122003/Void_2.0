@@ -5327,7 +5327,7 @@ video {
   }
 
   50% {
-    transform: translateY(-5px);
+    transform: translateY(-8px);
   }
 }
 
@@ -15599,6 +15599,12 @@ body {
   z-index: 180 !important;
 }
 
+@media (min-width: 701px) {
+  .void-hero-media img {
+    animation: mediaFloat 5.6s ease-in-out infinite !important;
+  }
+}
+
 @media (max-width: 700px) {
   .shop-page {
     padding-top: 86px !important;
@@ -15700,6 +15706,7 @@ body {
   }
 
   .void-hero-media img {
+    animation: mediaFloat 5.6s ease-in-out infinite !important;
     max-height: min(338px, 48vh) !important;
     width: min(330px, 65vw) !important;
   }
@@ -15712,6 +15719,7 @@ body {
   }
 
   .void-hero-media img {
+    animation: mediaFloat 5.6s ease-in-out infinite !important;
     max-height: min(298px, 45vh) !important;
     width: min(290px, 65vw) !important;
   }
