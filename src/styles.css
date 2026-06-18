@@ -15695,12 +15695,13 @@ body {
 
   .void-hero-media {
     align-self: end !important;
-    top: 58px !important;
+    top: 44px !important;
+    transform: translateY(-56px) !important;
   }
 
   .void-hero-media img {
-    max-height: min(270px, 38vh) !important;
-    width: min(264px, 52vw) !important;
+    max-height: min(338px, 48vh) !important;
+    width: min(330px, 65vw) !important;
   }
 }
 
@@ -15711,7 +15712,11 @@ body {
   }
 
   .void-hero-media img {
-    max-height: min(238px, 36vh) !important;
-    width: min(232px, 52vw) !important;
+    max-height: min(298px, 45vh) !important;
+    width: min(290px, 65vw) !important;
+  }
+
+  .void-hero-media {
+    transform: translateY(-46px) !important;
   }
 }
