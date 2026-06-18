@@ -21,6 +21,13 @@ let mongoSeedReady = false;
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
+  const configuredOrigins = [
+    process.env.FRONTEND_ORIGIN,
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "",
+    ...String(process.env.ALLOWED_ORIGINS || "").split(",")
+  ]
+    .map((entry) => String(entry || "").trim().replace(/\/+$/, ""))
+    .filter(Boolean);
   const allowedOrigins = new Set([
     "capacitor://localhost",
     "http://localhost",
@@ -29,10 +36,11 @@ app.use((req, res, next) => {
     "http://127.0.0.1:3000",
     "http://127.0.0.1:5173",
     "http://192.168.0.107:3000",
-    process.env.API_BASE_URL
+    ...configuredOrigins
   ].filter(Boolean));
+  const normalizedOrigin = origin ? origin.replace(/\/+$/, "") : "";
 
-  if (origin && allowedOrigins.has(origin)) {
+  if (normalizedOrigin && allowedOrigins.has(normalizedOrigin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Vary", "Origin");
   } else {
