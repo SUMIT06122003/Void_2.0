@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { products, testimonials } from "../data/storeData";
+import { apiFetch } from "../utils/api";
 import { formatIndianPhoneNumber, getOtpErrorMessage } from "../utils/authHelpers";
 
 function AuthPage({ mode, onAuthSuccess }) {
@@ -266,7 +267,7 @@ async function requestOtp(url, payload) {
 }
 
 async function requestAuth(url, payload) {
-  const response = await fetch(url, {
+  const response = await apiFetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

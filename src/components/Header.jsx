@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ChevronUp, Menu, Shield, ShoppingBag, User, UserPlus, X } from "lucide-react";
+import { ChevronDown, ChevronUp, Menu, Shield, ShoppingBag, User, UserPlus, X } from "lucide-react";
 import { brandAssets, products as fallbackProducts, routes } from "../data/storeData";
 import { categoryToSlug } from "../utils/catalog";
 import { isActiveRoute } from "../utils/routing";
@@ -69,15 +69,22 @@ function Header({
   onOpenBag,
   setMenuOpen,
   cartPulse,
-  products = fallbackProducts
+  products = fallbackProducts,
+  promoStrip = null
 }) {
   const [shopByOpen, setShopByOpen] = useState(true);
-  const categoryImages = new Map(products.map((product) => [product.category, product.image]));
+  const categoryImages = new Map(
+    products.flatMap((product) => [
+      [product.category, product.image],
+      [categoryToSlug(product.category), product.image],
+      [categoryToSlug(product.name), product.image]
+    ])
+  );
   const menuCategories = (categories.length ? categories : Array.from(new Set(products.map((product) => product.category))))
     .filter(Boolean)
     .map((category) => ({
       label: category,
-      image: categoryImages.get(category) || products[0]?.image || "",
+      image: categoryImages.get(category) || categoryImages.get(categoryToSlug(category)) || products[0]?.image || "",
       path: `/shop/${categoryToSlug(category)}`
     }));
 
@@ -85,12 +92,25 @@ function Header({
     setMenuOpen(false);
     onLogout();
   };
+  const strip = promoStrip || {
+    enabled: true,
+    message: "First order 20% off",
+    ctaLabel: "Shop Now ->",
+    href: "#/shop"
+  };
+  const showPromoStrip = strip.enabled !== false;
 
   return (
     <header
       className={`site-header ${isHeaderLifted ? "is-lifted" : ""} ${menuOpen ? "is-menu-open" : ""} ${cartPulse ? "has-cart-pulse" : ""}`}
       key={cartPulse}
     >
+      {showPromoStrip ? (
+        <div className="void-promo-bar">
+          <span>{strip.message || "First order 20% off"}</span>
+          <a href={strip.href || "#/shop"}>{strip.ctaLabel || "Shop Now ->"}</a>
+        </div>
+      ) : null}
       <div className="primary-nav">
         <button
           className="icon-button mobile-only"
@@ -113,7 +133,7 @@ function Header({
                   className={isActiveRoute(currentPath, item.path) ? "is-active" : ""}
                   href={`#${item.path}`}
                 >
-                  {item.label}
+                  {item.label} <ChevronDown size={13} />
                 </a>
                 <div className="desktop-shop-dropdown" aria-label="Shop products">
                   <div className="desktop-shop-grid">

@@ -1,0 +1,117 @@
+[
+  {
+    "id": "6bc969c3-f70d-4ed5-a9f7-7bd604df2561",
+    "mobile": "+919082813688",
+    "password": "202c3e0ed70f61f0aa1a3be80da14259:4b47c5902f6cd4be8dbad76ceda3286f7853043a479cece0f98778a4c202a0b9b5cd7fc6d4fd6edbd69fc87adf6630aee08474a8e1c863b05bde44b3d627cf41",
+    "createdAt": "2026-06-13T16:13:01.166Z"
+  },
+  {
+    "id": "ffe9418a-c769-4902-bf00-81761bba71b7",
+    "name": "Sumit singh",
+    "mobile": "+919967021767",
+    "password": "f93233382717f8a80b0f44ad6a0b9b5a:ceb0e1083c06174c1b717bc65788856d69d21b744bf262de7730899b38d9868849c4a600c7fbe443a54c7b794eff32e61de9c58638514c287c1d7ab90be9115d",
+    "createdAt": "2026-06-13T17:28:54.999Z"
+  },
+  {
+    "id": "cae83afd-433e-4196-965e-597ead4995c1",
+    "name": "Arun",
+    "mobile": "+919892446741",
+    "password": "96d5b6a7b0348b96c960ac0095e7c0b2:73d63f97478a9b669ebd3d4228851135497ab563cfde06cf81a5fcb2c99c93917eda410380d47939d16a98beefd882fe3c9c296119476199513cea07845b7601",
+    "createdAt": "2026-06-14T08:12:07.072Z",
+    "orders": [
+      {
+        "id": "VOID-3351B2",
+        "status": "Pending",
+        "items": [
+          {
+            "name": "New Product",
+            "price": "Rs. 1299",
+            "image": "/uploads/1781601459228-5f77bb60b017.jpg",
+            "selections": {
+              "color": "Black",
+              "size": "42"
+            }
+          }
+        ],
+        "total": "₹0",
+        "customer": {
+          "name": "Arun",
+          "phone": "9892446741"
+        },
+        "shippingAddress": "103 Anand Bazar Vasant vihar pokhran road 2 Thane W 400610",
+        "paymentMethod": "demo_card",
+        "paymentStatus": "Paid",
+        "createdAt": "2026-06-16T13:08:17.750Z",
+        "updatedAt": "2026-06-16T13:08:17.750Z"
+      },
+      {
+        "id": "VOID-6DE524",
+        "status": "Delivered",
+        "items": [
+          {
+            "name": "New Product",
+            "price": "Rs. 1299",
+            "image": "/uploads/1781601459228-5f77bb60b017.jpg",
+            "selections": {
+              "color": "Grey",
+              "size": "40"
+            }
+          }
+        ],
+        "total": "₹0",
+        "customer": {
+          "name": "Arun",
+          "phone": "9892446741"
+        },
+        "shippingAddress": "103 Anand Bazaar near Vasant Vihar Pokhran Road 2",
+        "paymentMethod": "demo_card",
+        "paymentStatus": "Paid",
+        "createdAt": "2026-06-16T09:19:32.706Z",
+        "updatedAt": "2026-06-16T13:18:18.918Z",
+        "trackingNumber": "",
+        "courierPartner": "",
+        "fulfillmentNote": "",
+        "expectedDelivery": ""
+      }
+    ],
+    "addresses": [
+      {
+        "id": "ac8d01df-922b-4b43-ac49-11d0b6f88a25",
+        "label": "Home",
+        "address": "103 Anand Bazar Vasant vihar pokhran road 2 Thane W 400610",
+        "createdAt": "2026-06-16T13:08:01.907Z"
+      }
+    ],
+    "eventRegistrations": [
+      {
+        "id": "EVT-5F25DB",
+        "eventId": "events-1781679099298",
+        "eventName": "Sumit",
+        "details": "Short event detail",
+        "eventType": "Sports",
+        "category": "Mixed",
+        "feeType": "Free",
+        "price": "Free",
+        "paymentStatus": "Free",
+        "points": 0,
+        "status": "Registered",
+        "createdAt": "2026-06-18T04:58:59.173Z",
+        "updatedAt": "2026-06-18T04:58:59.173Z"
+      },
+      {
+        "id": "EVT-FB7C2A",
+        "eventId": "event-training-club",
+        "eventName": "VOID Training Club",
+        "details": "Community workout and activewear fit session",
+        "eventType": "Sports",
+        "category": "Mens",
+        "feeType": "Free",
+        "price": "Free",
+        "paymentStatus": "Free",
+        "status": "Registered",
+        "createdAt": "2026-06-17T03:58:43.994Z",
+        "updatedAt": "2026-06-17T03:58:43.994Z"
+      }
+    ]
+  }
+]

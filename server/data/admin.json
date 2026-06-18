@@ -1,0 +1,208 @@
+{
+  "products": [
+    {
+      "name": "New Product",
+      "category": "T-shirt",
+      "price": "Rs. 1299",
+      "compareAt": "2399",
+      "badge": "Trending",
+      "rating": "4.5",
+      "quantity": "100",
+      "image": "/uploads/1781601459228-5f77bb60b017.jpg",
+      "gallery": [
+        "/uploads/1781601473076-c09bf7ca47bb.jpg",
+        "/uploads/1781601473082-9df1ecadb41c.jpg",
+        "/uploads/1781601473115-71da8d9acb7a.png"
+      ],
+      "colors": [
+        "Grey",
+        "Black"
+      ],
+      "sizes": [
+        "38",
+        "40",
+        "42",
+        "44"
+      ],
+      "specs": "",
+      "description": "",
+      "specialisation": "",
+      "status": "Published",
+      "sku": "VOID-NEW",
+      "id": "products-1781601444023"
+    },
+    {
+      "name": "Shorts",
+      "category": "Shorts",
+      "price": "Rs. 1299",
+      "compareAt": "1999",
+      "badge": "New",
+      "rating": "",
+      "quantity": "0100",
+      "image": "/uploads/1781760440722-b7b672f658b4.jpg",
+      "gallery": [],
+      "colors": [
+        "black/green"
+      ],
+      "sizes": [
+        "L"
+      ],
+      "specs": "",
+      "description": "",
+      "specialisation": "",
+      "status": "Published",
+      "sku": "VOID-Shorts",
+      "id": "products-1781760395238"
+    }
+  ],
+  "inventory": [
+    {
+      "id": "inv-products-1781601444023",
+      "productId": "products-1781601444023",
+      "sku": "VOID-NEW",
+      "product": "New Product",
+      "stock": 100,
+      "reorderAt": 5,
+      "location": "Mumbai"
+    },
+    {
+      "id": "inv-products-1781601444023",
+      "productId": "products-1781760395238",
+      "sku": "VOID-Shorts",
+      "product": "Shorts",
+      "stock": 100,
+      "reorderAt": 5,
+      "location": "Mumbai"
+    }
+  ],
+  "shipping": [
+    {
+      "id": "ship-standard",
+      "zone": "India Standard",
+      "partner": "Manual Dispatch",
+      "fee": "Free",
+      "eta": "3-6 days",
+      "status": "Active"
+    },
+    {
+      "id": "ship-express",
+      "zone": "Metro Express",
+      "partner": "Manual Dispatch",
+      "fee": "Rs. 99",
+      "eta": "1-3 days",
+      "status": "Draft"
+    }
+  ],
+  "refunds": [
+    {
+      "id": "refund-policy",
+      "type": "Return window",
+      "rule": "7 days from delivery",
+      "status": "Active"
+    },
+    {
+      "id": "refund-quality",
+      "type": "Quality issue",
+      "rule": "Photo/video proof required",
+      "status": "Active"
+    }
+  ],
+  "coupons": [
+    {
+      "id": "coupon-welcome",
+      "code": "VOID20",
+      "discount": "20%",
+      "status": "Active",
+      "expires": "2026-12-31"
+    },
+    {
+      "id": "coupon-stack",
+      "code": "GYMREADY",
+      "discount": "Rs. 150",
+      "status": "Draft",
+      "expires": "2026-09-30"
+    }
+  ],
+  "categories": [
+    {
+      "name": "T-shirt",
+      "slug": "new-tshirt",
+      "status": "Visible",
+      "id": "categories-1781587435974"
+    },
+    {
+      "name": "Shorts",
+      "slug": "new-shorts",
+      "status": "Visible",
+      "id": "categories-1781760351743"
+    }
+  ],
+  "events": [
+    {
+      "name": "Sumit",
+      "details": "Short event detail",
+      "description": "Describe the event, what users get, and who it is for.",
+      "eventType": "Sports",
+      "sportsCategories": [
+        "Mixed",
+        "Mens",
+        "Womens"
+      ],
+      "image": "/uploads/1781681295705-da8009a4ba84.jpg",
+      "gallery": [],
+      "feeType": "Free",
+      "price": "Free",
+      "date": "2026-12-06",
+      "location": "Mumbai",
+      "mixedWinner": "",
+      "mensWinner": "",
+      "womensWinner": "",
+      "winnerNotes": "",
+      "status": "Published",
+      "id": "events-1781679099298"
+    }
+  ],
+  "blogs": [
+    {
+      "id": "blog-discipline",
+      "title": "Train In Purpose",
+      "excerpt": "How discipline shapes better training days.",
+      "body": "VOID is built around consistent movement, focused routines, and activewear that stays out of your way.",
+      "author": "VOID Team",
+      "image": "",
+      "status": "Published",
+      "publishedAt": "2026-06-17"
+    }
+  ],
+  "cms": [
+    {
+      "id": "cms-home-hero",
+      "page": "Home",
+      "block": "Hero",
+      "title": "Activewear for your next rep",
+      "status": "Published"
+    },
+    {
+      "id": "cms-refund",
+      "page": "Refund Policy",
+      "block": "Policy copy",
+      "title": "Returns and refunds",
+      "status": "Published"
+    }
+  ],
+  "reviewVideos": [
+    {
+      "id": "review-athlete",
+      "title": "VOID Athlete Review",
+      "product": "Performance T-Shirt",
+      "status": "Published"
+    },
+    {
+      "id": "review-fit",
+      "title": "Training Fit Check",
+      "product": "Shorts and daily gym wear",
+      "status": "Published"
+    }
+  ],
+  "updatedAt": "2026-06-18T05:28:58.828Z"
+}

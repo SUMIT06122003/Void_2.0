@@ -6,6 +6,7 @@ import {
   FileText,
   Film,
   ImagePlus,
+  Megaphone,
   PackageCheck,
   PackageSearch,
   Percent,
@@ -19,6 +20,7 @@ import {
   Users
 } from "lucide-react";
 import { products as assetProducts, testimonials as assetReviewVideos } from "../data/storeData";
+import { apiFetch } from "../utils/api";
 import { pauseOtherVideos } from "../utils/videoPlayback";
 
 const sections = [
@@ -31,7 +33,9 @@ const sections = [
   { id: "refunds", label: "Refunds", icon: Undo2 },
   { id: "coupons", label: "Coupons", icon: Percent },
   { id: "customers", label: "Customers", icon: Users },
+  { id: "blogs", label: "Blogs", icon: FileText },
   { id: "cms", label: "CMS", icon: FileText },
+  { id: "promoStrip", label: "Promo Strip", icon: Megaphone },
   { id: "reviewVideos", label: "Review Videos", icon: Film },
   { id: "categories", label: "Categories", icon: Tags }
 ];
@@ -43,7 +47,9 @@ const editableSections = new Set([
   "shipping",
   "refunds",
   "coupons",
+  "blogs",
   "cms",
+  "promoStrip",
   "reviewVideos",
   "categories"
 ]);
@@ -61,9 +67,16 @@ const emptyDashboard = {
     shipping: [],
     refunds: [],
     coupons: [],
+    blogs: [],
     categories: [],
     cms: [],
-    reviewVideos: []
+    reviewVideos: [],
+    promoStrip: {
+      enabled: true,
+      message: "First order 20% off",
+      ctaLabel: "Shop Now ->",
+      href: "#/shop"
+    }
   }
 };
 
@@ -113,7 +126,7 @@ function AdminPage({ authToken }) {
     setMessage("");
 
     try {
-      const response = await fetch("/api/admin/dashboard", {
+      const response = await apiFetch("/api/admin/dashboard", {
         headers: {
           Authorization: `Bearer ${authToken}`
         }
@@ -144,7 +157,7 @@ function AdminPage({ authToken }) {
     setMessage("");
 
     try {
-      const response = await fetch("/api/admin/catalog", {
+      const response = await apiFetch("/api/admin/catalog", {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${authToken}`,
@@ -211,6 +224,16 @@ function AdminPage({ authToken }) {
     });
   };
 
+  const updatePromoStrip = (key, value) => {
+    setCatalog((current) => ({
+      ...current,
+      promoStrip: {
+        ...(current.promoStrip || emptyDashboard.catalog.promoStrip),
+        [key]: value
+      }
+    }));
+  };
+
   return (
     <section className="page-section admin-page">
       <div className="admin-shell">
@@ -275,6 +298,7 @@ function AdminPage({ authToken }) {
                 onAdd={addItem}
                 onRemove={removeItem}
                 onUpdate={updateItem}
+                onUpdatePromoStrip={updatePromoStrip}
               />
             </div>
           )}
@@ -284,7 +308,7 @@ function AdminPage({ authToken }) {
   );
 }
 
-function AdminSection({ activeSection, authToken, catalog, dashboard, metrics, onAdd, onRemove, onUpdate }) {
+function AdminSection({ activeSection, authToken, catalog, dashboard, metrics, onAdd, onRemove, onUpdate, onUpdatePromoStrip }) {
   if (activeSection === "analytics") {
     return (
       <div className="admin-stack">
@@ -339,6 +363,10 @@ function AdminSection({ activeSection, authToken, catalog, dashboard, metrics, o
         />
       </div>
     );
+  }
+
+  if (activeSection === "promoStrip") {
+    return <PromoStripEditor promoStrip={catalog.promoStrip} onUpdate={onUpdatePromoStrip} />;
   }
 
   if (activeSection === "reviewVideos") {
@@ -418,7 +446,7 @@ function OrderManager({ authToken, orders }) {
     setNotice("");
 
     try {
-      const response = await fetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
+      const response = await apiFetch(`/api/admin/orders/${encodeURIComponent(orderId)}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${authToken}`,
@@ -660,6 +688,10 @@ function EditableCollection({ authToken = "", categories = [], items, sectionId,
     return <EventEditor authToken={authToken} items={items} onAdd={onAdd} onRemove={onRemove} onUpdate={onUpdate} />;
   }
 
+  if (sectionId === "blogs") {
+    return <BlogEditor authToken={authToken} items={items} onAdd={onAdd} onRemove={onRemove} onUpdate={onUpdate} />;
+  }
+
   const keys = getKeys(items, getTemplate(sectionId));
 
   return (
@@ -705,6 +737,111 @@ function EditableCollection({ authToken = "", categories = [], items, sectionId,
             ))}
           </tbody>
         </table>
+      </div>
+    </div>
+  );
+}
+
+function PromoStripEditor({ promoStrip, onUpdate }) {
+  const strip = promoStrip || emptyDashboard.catalog.promoStrip;
+
+  return (
+    <div className="admin-editor promo-strip-editor">
+      <div className="admin-editor-head">
+        <div>
+          <span>Storefront Promo</span>
+          <h2>Offer Strip</h2>
+        </div>
+      </div>
+
+      <div className="promo-strip-preview" aria-label="Promo strip preview">
+        {strip.enabled === false ? (
+          <span>Strip hidden on storefront</span>
+        ) : (
+          <>
+            <strong>{strip.message || "First order 20% off"}</strong>
+            <a href={strip.href || "#/shop"}>{strip.ctaLabel || "Shop Now ->"}</a>
+          </>
+        )}
+      </div>
+
+      <div className="admin-product-form-grid">
+        <label className="admin-form-field">
+          <span>Strip Visibility</span>
+          <select value={strip.enabled === false ? "Hidden" : "Visible"} onChange={(event) => onUpdate("enabled", event.target.value === "Visible")}>
+            <option value="Visible">Show strip</option>
+            <option value="Hidden">Do not show strip</option>
+          </select>
+        </label>
+        <AdminField label="Offer Text" value={strip.message} onChange={(value) => onUpdate("message", value)} />
+        <AdminField label="Button Text" value={strip.ctaLabel} onChange={(value) => onUpdate("ctaLabel", value)} />
+        <AdminField label="Link" value={strip.href} onChange={(value) => onUpdate("href", value)} />
+      </div>
+    </div>
+  );
+}
+
+function BlogEditor({ authToken = "", items, onAdd, onRemove, onUpdate }) {
+  const handleBlogPhoto = async (itemIndex, file) => {
+    if (!file) return;
+    const image = await uploadImageFile(file, authToken);
+    if (image) {
+      onUpdate("blogs", itemIndex, "image", image);
+    }
+  };
+
+  return (
+    <div className="admin-editor blog-editor">
+      <div className="admin-editor-head">
+        <div>
+          <span>Blogs</span>
+          <h2>{items.length} posts</h2>
+        </div>
+        <button type="button" className="primary-link dark-link" onClick={() => onAdd("blogs")}>
+          Add Blog
+        </button>
+      </div>
+
+      <div className="blog-editor-list">
+        {items.map((item, index) => (
+          <article className="blog-editor-card" key={item.id || index}>
+            <div className="admin-product-photo-editor">
+              {item.image ? (
+                <img src={item.image} alt={item.title || "Blog"} />
+              ) : (
+                <div className="admin-photo-placeholder">
+                  <ImagePlus size={24} />
+                  <span>Blog photo</span>
+                </div>
+              )}
+              <label className="admin-upload-button">
+                <Upload size={15} />
+                Upload Photo
+                <input accept="image/*" type="file" onChange={(event) => handleBlogPhoto(index, event.target.files?.[0])} />
+              </label>
+            </div>
+            <div className="admin-product-form-grid">
+              <AdminField label="Title" value={item.title} onChange={(value) => onUpdate("blogs", index, "title", value)} />
+              <AdminField label="Author" value={item.author} onChange={(value) => onUpdate("blogs", index, "author", value)} />
+              <AdminField label="Published At" type="date" value={item.publishedAt} onChange={(value) => onUpdate("blogs", index, "publishedAt", value)} />
+              <label className="admin-form-field">
+                <span>Status</span>
+                <select value={item.status || "Draft"} onChange={(event) => onUpdate("blogs", index, "status", event.target.value)}>
+                  <option value="Published">Published</option>
+                  <option value="Draft">Draft</option>
+                </select>
+              </label>
+              <AdminField isWide label="Excerpt" value={item.excerpt} onChange={(value) => onUpdate("blogs", index, "excerpt", value)} />
+              <label className="admin-form-field is-wide">
+                <span>Body</span>
+                <textarea value={item.body || ""} onChange={(event) => onUpdate("blogs", index, "body", event.target.value)} />
+              </label>
+            </div>
+            <button type="button" className="admin-delete product-delete" onClick={() => onRemove("blogs", index)}>
+              Remove Blog
+            </button>
+          </article>
+        ))}
       </div>
     </div>
   );
@@ -874,12 +1011,88 @@ function EventEditor({ authToken = "", items, onAdd, onRemove, onUpdate }) {
                     <AdminField label="Womens Winner" value={item.womensWinner} onChange={(value) => onUpdate("events", index, "womensWinner", value)} />
                     <AdminField isWide label="Winner Notes" value={item.winnerNotes} onChange={(value) => onUpdate("events", index, "winnerNotes", value)} />
                   </div>
+                  {item.id ? <EventLeaderboardAdmin authToken={authToken} eventId={item.id} /> : null}
                 </div>
               ) : null}
             </article>
           );
         })}
       </div>
+    </div>
+  );
+}
+
+function EventLeaderboardAdmin({ authToken, eventId }) {
+  const [entries, setEntries] = useState([]);
+  const [notice, setNotice] = useState("");
+
+  const loadLeaderboard = async () => {
+    try {
+      const response = await apiFetch(`/api/admin/events/${encodeURIComponent(eventId)}/leaderboard`, {
+        headers: { Authorization: `Bearer ${authToken}` }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok) {
+        setEntries(Array.isArray(data.leaderboard) ? data.leaderboard : []);
+      }
+    } catch {
+      setEntries([]);
+    }
+  };
+
+  useEffect(() => {
+    loadLeaderboard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventId]);
+
+  const updatePoints = (userId, value) => {
+    setEntries((current) =>
+      current.map((entry) => (entry.userId === userId ? { ...entry, points: value } : entry))
+    );
+  };
+
+  const savePoints = async () => {
+    setNotice("");
+    try {
+      const response = await apiFetch(`/api/admin/events/${encodeURIComponent(eventId)}/leaderboard`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${authToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ entries })
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.message || "Unable to save leaderboard.");
+      setEntries(Array.isArray(data.leaderboard) ? data.leaderboard : []);
+      setNotice("Leaderboard saved.");
+    } catch (error) {
+      setNotice(error.message || "Unable to save leaderboard.");
+    }
+  };
+
+  return (
+    <div className="admin-leaderboard-editor">
+      <div className="admin-gallery-head">
+        <strong>Registered users leaderboard</strong>
+        <button type="button" className="admin-upload-button compact" onClick={savePoints}>
+          Save Points
+        </button>
+      </div>
+      {notice ? <p className="admin-inline-notice">{notice}</p> : null}
+      {entries.length ? (
+        <div className="admin-leaderboard-list">
+          {entries.map((entry) => (
+            <label className="admin-leaderboard-row" key={`${entry.userId}-${entry.category}`}>
+              <span>{entry.name}</span>
+              <em>{entry.category}</em>
+              <input type="number" min="0" value={entry.points ?? 0} onChange={(event) => updatePoints(entry.userId, event.target.value)} />
+            </label>
+          ))}
+        </div>
+      ) : (
+        <p className="admin-empty-line">No registered users yet.</p>
+      )}
     </div>
   );
 }
@@ -1288,7 +1501,7 @@ async function uploadImageFile(file, authToken) {
   }
 
   try {
-    const response = await fetch("/api/admin/uploads", {
+    const response = await apiFetch("/api/admin/uploads", {
       method: "POST",
       headers: {
         Authorization: `Bearer ${authToken}`,

@@ -31,6 +31,7 @@ function ShopPage({ categories = [], currentPath, products = fallbackProducts })
   const [activeCategory, setActiveCategory] = useState(
     requestedCategory || null
   );
+  const [heroSlideIndex, setHeroSlideIndex] = useState(0);
 
   // Keep chip state in sync with route changes.
 
@@ -40,15 +41,39 @@ function ShopPage({ categories = [], currentPath, products = fallbackProducts })
 
   const filteredProducts = useMemo(() => {
     if (!activeCategory) return products;
-    return products.filter((product) => product.category === activeCategory);
+    const activeSlug = categoryToSlug(activeCategory);
+    return products.filter((product) => {
+      const productCategorySlug = categoryToSlug(product.category);
+      const productNameSlug = categoryToSlug(product.name);
+      return product.category === activeCategory || productCategorySlug === activeSlug || productNameSlug === activeSlug;
+    });
   }, [activeCategory, products]);
 
   const title = activeCategory ? activeCategory : "VOID Core";
   const heroProducts = filteredProducts.length ? filteredProducts : products;
-  const heroProduct = heroProducts[0];
+  const visibleHeroProducts = heroProducts.slice(0, 3);
+  const activeHeroIndex = heroSlideIndex % Math.max(visibleHeroProducts.length, 1);
+  const heroProduct = visibleHeroProducts[activeHeroIndex] || heroProducts[0];
+  const heroDetails = activeCategory
+    ? heroProduct?.specs || []
+    : heroProducts.map((product) => `${product.category}: ${product.name}`);
+
+  useEffect(() => {
+    setHeroSlideIndex(0);
+  }, [activeCategory, heroProducts.length]);
+
+  useEffect(() => {
+    if (visibleHeroProducts.length < 2) return undefined;
+
+    const intervalId = window.setInterval(() => {
+      setHeroSlideIndex((index) => (index + 1) % visibleHeroProducts.length);
+    }, 3000);
+
+    return () => window.clearInterval(intervalId);
+  }, [visibleHeroProducts.length]);
 
   return (
-    <section className="page-section shop-page">
+    <section className={`page-section shop-page ${activeCategory ? "is-category-view" : "is-all-view"}`}>
       <div className="shop-hero-panel">
         <div className="shop-hero-copy">
           <span>Shop</span>
@@ -60,13 +85,28 @@ function ShopPage({ categories = [], currentPath, products = fallbackProducts })
           </div>
         </div>
         <div className="shop-hero-gallery" aria-label="Featured category products">
-          {heroProducts.slice(0, 3).map((product) => (
-            <img src={product.gallery?.[0] || product.image} alt={product.name} key={product.name} />
+          {visibleHeroProducts.map((product, index) => (
+            <a
+              className={`shop-hero-product-card ${index === activeHeroIndex ? "is-active" : ""}`}
+              href={`#/shop/${categoryToSlug(product.category)}`}
+              key={product.name}
+            >
+              <img src={product.gallery?.[0] || product.image} alt={product.name} />
+              <span>{product.category}</span>
+              <strong>{product.name}</strong>
+            </a>
           ))}
           <article>
-            <span>{heroProduct?.badge || "VOID"}</span>
-            <strong>{heroProduct?.name || "VOID Core"}</strong>
-            <small>{heroProduct?.price || "Performance essentials"}</small>
+            <span>{activeCategory ? heroProduct?.badge || "VOID" : "VOID KIT"}</span>
+            <strong>{activeCategory ? heroProduct?.name || title : "All Products"}</strong>
+            <small>{activeCategory ? heroProduct?.price || "Performance essentials" : "Complete performance range"}</small>
+            {heroDetails.length ? (
+              <ul>
+                {heroDetails.slice(0, 3).map((detail) => (
+                  <li key={detail}>{detail}</li>
+                ))}
+              </ul>
+            ) : null}
           </article>
         </div>
       </div>

@@ -1,72 +1,38 @@
-import { useEffect, useMemo, useState } from "react";
-import { brandAssets, products, storeSpecs } from "../data/storeData";
+import { ArrowRight, PackageCheck, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { storeSpecs } from "../data/storeData";
+import voidBox from "../assets/voidbox.png";
+
+const proofIcons = [ShieldCheck, Truck, RotateCcw, PackageCheck];
 
 function Hero() {
-  const heroProducts = useMemo(() => products.slice(0, 4), []);
-  const [activeIndex, setActiveIndex] = useState(0);
-  const activeProduct = heroProducts[activeIndex % Math.max(heroProducts.length, 1)] || heroProducts[0];
-
-  useEffect(() => {
-    if (heroProducts.length < 2) return undefined;
-
-    const id = window.setInterval(() => {
-      setActiveIndex((index) => (index + 1) % heroProducts.length);
-    }, 3200);
-
-    return () => window.clearInterval(id);
-  }, [heroProducts.length]);
-
   return (
-    <section className="hero">
-      <div className="hero-fade-product" aria-hidden="true" key={`fade-${activeProduct?.name}`}>
-        <img src={activeProduct?.gallery?.[0] || brandAssets.heroTee} alt="" />
+    <section className="void-hero">
+      <div className="void-hero-copy">
+        <span>Premium Activewear</span>
+        <h1>Built For Discipline. Made To Last.</h1>
+        <p>Performance-driven essentials for those who show up every day.</p>
+        <a className="void-button" href="#/shop">
+          Shop Now <ArrowRight size={16} />
+        </a>
       </div>
 
-      <div className="hero-copy">
-        <span>Built for movement. Designed for stillness.</span>
-        <h1>Discipline Over Noise</h1>
-        <p>Performance essentials for training, daily movement, and the unseen hours.</p>
-        <div className="hero-actions">
-          <a className="primary-link" href="#/shop">
-            Shop Now
-          </a>
-          <a className="secondary-link" href="#home-showcase">
-            Explore Gear
-          </a>
-        </div>
-        <div className="hero-product-switcher" aria-label="Featured products">
-          {heroProducts.map((product, index) => (
-            <button
-              aria-pressed={index === activeIndex}
-              className={index === activeIndex ? "is-active" : ""}
-              key={product.name}
-              onClick={() => setActiveIndex(index)}
-              type="button"
-            >
-              <img src={product.gallery?.[0] || product.image} alt="" />
-              <span>{product.category}</span>
-            </button>
-          ))}
-        </div>
+      <div className="void-hero-media" aria-label="VOID activewear hero">
+        <img src={voidBox} alt="VOID activewear gift box" />
       </div>
 
-      <div className="hero-media">
-        <img
-          key={`hero-${activeProduct?.name}`}
-          src={activeProduct?.gallery?.[0] || brandAssets.heroTee}
-          alt={activeProduct?.name || "VOID activewear"}
-        />
-        <div className="hero-product-card">
-          <span>{activeProduct?.badge || "VOID"}</span>
-          <strong>{activeProduct?.name || "Performance T-Shirt"}</strong>
-          <small>{activeProduct?.category || "Training essential"}</small>
-        </div>
-      </div>
-
-      <div className="hero-strip">
-        {storeSpecs.map((spec) => (
-          <span key={spec.label}>{spec.label}</span>
-        ))}
+      <div className="void-proof-row" aria-label="Store benefits">
+        {storeSpecs.map((spec, index) => {
+          const Icon = proofIcons[index % proofIcons.length];
+          return (
+            <article key={spec.label}>
+              <Icon size={22} />
+              <div>
+                <strong>{spec.label}</strong>
+                <span>{spec.text}</span>
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

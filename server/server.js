@@ -19,6 +19,38 @@ let mongoDb;
 let mongoIndexesReady = false;
 let mongoSeedReady = false;
 
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  const allowedOrigins = new Set([
+    "capacitor://localhost",
+    "http://localhost",
+    "http://localhost:3000",
+    "http://localhost:5173",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5173",
+    "http://192.168.0.107:3000",
+    process.env.API_BASE_URL
+  ].filter(Boolean));
+
+  if (origin && allowedOrigins.has(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  } else {
+    // Helpful during debugging; remove/disable later if desired.
+    // console.log("CORS blocked origin:", origin, "allowed:", Array.from(allowedOrigins));
+  }
+
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  return next();
+});
+
 app.use(express.json({ limit: "75mb" }));
 app.use("/uploads", express.static(uploadsDir));
 
@@ -35,11 +67,14 @@ app.post("/api/auth/addresses", requireAuth, handleAddAddress);
 app.delete("/api/auth/addresses/:addressId", requireAuth, handleDeleteAddress);
 app.post("/api/orders", requireAuth, handleCreateOrder);
 app.post("/api/events/:eventId/register", requireAuth, handleRegisterEvent);
+app.get("/api/events/:eventId/leaderboard", handleEventLeaderboard);
 app.get("/api/admin/dashboard", requireAuth, requireAdmin, handleAdminDashboard);
 app.get("/api/admin/catalog", requireAuth, requireAdmin, handleAdminCatalog);
 app.put("/api/admin/catalog", requireAuth, requireAdmin, handleSaveAdminCatalog);
 app.get("/api/admin/orders", requireAuth, requireAdmin, handleAdminOrders);
 app.put("/api/admin/orders/:orderId", requireAuth, requireAdmin, handleUpdateAdminOrder);
+app.get("/api/admin/events/:eventId/leaderboard", requireAuth, requireAdmin, handleEventLeaderboard);
+app.put("/api/admin/events/:eventId/leaderboard", requireAuth, requireAdmin, handleUpdateEventLeaderboard);
 app.post("/api/admin/uploads", requireAuth, requireAdmin, express.raw({ type: "image/*", limit: "8mb" }), handleAdminUpload);
 app.post("/api/otp/send", handleSendOtp);
 app.post("/api/otp/verify", handleVerifyOtp);
@@ -299,6 +334,30 @@ async function handleRegisterEvent(req, res) {
   });
 }
 
+async function handleEventLeaderboard(req, res) {
+  const eventId = String(req.params.eventId || "").trim();
+
+  if (!eventId) {
+    return res.status(400).json({ message: "Event ID is required." });
+  }
+
+  return res.json({ leaderboard: collectEventLeaderboard(await readAllUsers(), eventId) });
+}
+
+async function handleUpdateEventLeaderboard(req, res) {
+  const eventId = String(req.params.eventId || "").trim();
+  const entries = Array.isArray(req.body?.entries) ? req.body.entries : [];
+
+  if (!eventId) {
+    return res.status(400).json({ message: "Event ID is required." });
+  }
+
+  return res.json({
+    message: "Leaderboard updated.",
+    leaderboard: await updateEventLeaderboardPoints(eventId, entries)
+  });
+}
+
 async function handleAdminDashboard(_req, res) {
   const [users, catalog] = await Promise.all([readAllUsers(), readAdminCatalog()]);
   const orders = collectOrdersFromUsers(users);
@@ -374,15 +433,20 @@ async function handlePublicCatalog(_req, res) {
   const products = catalog.products.filter((product) => {
     const status = String(product.status || "Published").toLowerCase();
     const category = String(product.category || "").toLowerCase();
-    return status === "published" && (!visibleCategoryNames.size || visibleCategoryNames.has(category));
+    return status === "published" && (!visibleCategoryNames.size || !category || visibleCategoryNames.has(category));
   });
   const events = catalog.events.filter(isPublicEvent);
+  const blogs = catalog.blogs.filter((blog) =>
+    ["published", "visible", "active"].includes(String(blog.status || "Draft").toLowerCase())
+  );
 
   return res.json({
     catalog: {
       products,
       events,
+      blogs,
       categories: visibleCategories,
+      promoStrip: catalog.promoStrip,
       updatedAt: catalog.updatedAt
     }
   });
@@ -627,10 +691,61 @@ function normalizeEventRegistration(event, category) {
     feeType,
     price: feeType === "Paid" ? String(event.price || "Paid").trim().slice(0, 40) : "Free",
     paymentStatus: feeType === "Paid" ? "Payment Pending" : "Free",
+    points: 0,
     status: "Registered",
     createdAt: now,
     updatedAt: now
   };
+}
+
+function collectEventLeaderboard(users, eventId) {
+  return users
+    .flatMap((user) => {
+      const registrations = Array.isArray(user.eventRegistrations) ? user.eventRegistrations : [];
+      return registrations
+        .filter((entry) => String(entry.eventId || "") === eventId)
+        .map((entry) => ({
+          userId: user.id,
+          name: user.name || user.mobile || "VOID member",
+          mobile: user.mobile,
+          category: entry.category || "General",
+          points: Number(entry.points || 0),
+          registeredAt: entry.createdAt || entry.registeredAt || ""
+        }));
+    })
+    .sort((first, second) => Number(second.points || 0) - Number(first.points || 0));
+}
+
+async function updateEventLeaderboardPoints(eventId, entries) {
+  const pointsByUser = new Map(entries.map((entry) => [String(entry.userId || ""), Number(entry.points || 0)]));
+  const db = await getDatabase();
+
+  if (db) {
+    const users = await db.collection("users").find({ "eventRegistrations.eventId": eventId }).toArray();
+    for (const rawUser of users) {
+      const user = cleanMongoUser(rawUser);
+      const eventRegistrations = (Array.isArray(user.eventRegistrations) ? user.eventRegistrations : []).map((entry) =>
+        String(entry.eventId || "") === eventId && pointsByUser.has(user.id)
+          ? { ...entry, points: pointsByUser.get(user.id), updatedAt: new Date().toISOString() }
+          : entry
+      );
+      await db.collection("users").updateOne({ id: user.id }, { $set: { eventRegistrations } });
+    }
+    return collectEventLeaderboard(await readAllUsers(), eventId);
+  }
+
+  const users = readUsersFromFile();
+  const nextUsers = users.map((user) => ({
+    ...user,
+    eventRegistrations: (Array.isArray(user.eventRegistrations) ? user.eventRegistrations : []).map((entry) =>
+      String(entry.eventId || "") === eventId && pointsByUser.has(user.id)
+        ? { ...entry, points: pointsByUser.get(user.id), updatedAt: new Date().toISOString() }
+        : entry
+    )
+  }));
+
+  writeUsersToFile(nextUsers);
+  return collectEventLeaderboard(nextUsers, eventId);
 }
 
 function isPublicEvent(event) {
@@ -732,9 +847,21 @@ function normalizeAdminCatalog(value) {
     coupons: normalizeAdminList(catalog.coupons, fallback.coupons),
     categories: normalizeAdminList(catalog.categories, fallback.categories),
     events: normalizeAdminList(catalog.events, fallback.events),
+    blogs: normalizeAdminList(catalog.blogs, fallback.blogs),
     cms: normalizeAdminList(catalog.cms, fallback.cms),
     reviewVideos: normalizeAdminList(catalog.reviewVideos, fallback.reviewVideos),
+    promoStrip: normalizePromoStrip(catalog.promoStrip, fallback.promoStrip),
     updatedAt: new Date().toISOString()
+  };
+}
+
+function normalizePromoStrip(value, fallback) {
+  const source = value && typeof value === "object" ? value : fallback;
+  return {
+    enabled: source.enabled === false || String(source.enabled || "").toLowerCase() === "hidden" ? false : true,
+    message: String(source.message || fallback.message || "First order 20% off").trim().slice(0, 120),
+    ctaLabel: String(source.ctaLabel || fallback.ctaLabel || "Shop Now ->").trim().slice(0, 60),
+    href: String(source.href || fallback.href || "#/shop").trim().slice(0, 120)
   };
 }
 
@@ -770,6 +897,10 @@ function normalizeAdminField(key, value) {
 
   if (longMediaFields.has(key) || trimmed.startsWith("data:image/") || trimmed.startsWith("data:video/")) {
     return trimmed.slice(0, 8 * 1024 * 1024);
+  }
+
+  if (["body", "content", "description"].includes(key)) {
+    return trimmed.slice(0, 12000);
   }
 
   return trimmed.slice(0, 600);
@@ -1219,6 +1350,18 @@ function getDefaultAdminCatalog() {
         status: "Published"
       }
     ],
+    blogs: [
+      {
+        id: "blog-discipline",
+        title: "Train In Purpose",
+        excerpt: "How discipline shapes better training days.",
+        body: "VOID is built around consistent movement, focused routines, and activewear that stays out of your way.",
+        author: "VOID Team",
+        image: "",
+        status: "Published",
+        publishedAt: "2026-06-17"
+      }
+    ],
     cms: [
       { id: "cms-home-hero", page: "Home", block: "Hero", title: "Activewear for your next rep", status: "Published" },
       { id: "cms-refund", page: "Refund Policy", block: "Policy copy", title: "Returns and refunds", status: "Published" }
@@ -1227,6 +1370,12 @@ function getDefaultAdminCatalog() {
       { id: "review-athlete", title: "VOID Athlete Review", product: "Performance T-Shirt", status: "Published" },
       { id: "review-fit", title: "Training Fit Check", product: "Shorts and daily gym wear", status: "Published" }
     ],
+    promoStrip: {
+      enabled: true,
+      message: "First order 20% off",
+      ctaLabel: "Shop Now ->",
+      href: "#/shop"
+    },
     updatedAt: new Date().toISOString()
   };
 }

@@ -9,10 +9,13 @@ import AuthPage from "./pages/AuthPage";
 import HomePage from "./pages/HomePage";
 import InfoPage from "./pages/InfoPage";
 import EventsPage from "./pages/EventsPage";
+import BlogPage from "./pages/BlogPage";
 import ProductPage from "./pages/ProductPage";
 import ShopPage from "./pages/ShopPage";
 import BagPage from "./pages/BagPage";
+import { apiFetch } from "./utils/api";
 import { buildStorefrontCategories, buildStorefrontProducts } from "./utils/catalog";
+import { initMetaPixel, trackPageView } from "./utils/metaPixel";
 import { getCurrentPath } from "./utils/routing";
 
 function App() {
@@ -29,8 +32,18 @@ function App() {
   const [storefrontCatalog, setStorefrontCatalog] = useState(() => ({
     products: [],
     categories: [],
-    events: []
+    events: [],
+    blogs: [],
+    promoStrip: null
   }));
+
+  useEffect(() => {
+    initMetaPixel();
+  }, []);
+
+  useEffect(() => {
+    trackPageView(currentPath);
+  }, [currentPath]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -48,7 +61,7 @@ function App() {
 
     async function loadCatalog() {
       try {
-        const response = await fetch("/api/catalog");
+        const response = await apiFetch("/api/catalog");
         const data = await response.json().catch(() => ({}));
 
         if (!response.ok) {
@@ -60,14 +73,22 @@ function App() {
         const categories = buildStorefrontCategories(catalog.categories, products);
 
         if (isMounted) {
-          setStorefrontCatalog({ products, categories, events: Array.isArray(catalog.events) ? catalog.events : [] });
+          setStorefrontCatalog({
+            products,
+            categories,
+            events: Array.isArray(catalog.events) ? catalog.events : [],
+            blogs: Array.isArray(catalog.blogs) ? catalog.blogs : [],
+            promoStrip: catalog.promoStrip || null
+          });
         }
       } catch {
         if (isMounted) {
           setStorefrontCatalog({
             products: [],
             categories: [],
-            events: []
+            events: [],
+            blogs: [],
+            promoStrip: null
           });
         }
       }
@@ -208,6 +229,7 @@ function App() {
         setMenuOpen={setMenuOpen}
         cartPulse={cartPulse}
         products={storefrontCatalog.products}
+        promoStrip={storefrontCatalog.promoStrip}
       />
       <div className={`mobile-bag-backdrop ${bagOpen ? "is-open" : ""}`} onClick={() => setBagOpen(false)} role="presentation" />
       <aside className={`mobile-bag-drawer ${bagOpen ? "is-open" : ""}`} aria-label="Shopping bag" aria-hidden={!bagOpen}>
@@ -232,6 +254,7 @@ function App() {
           products={storefrontCatalog.products}
           categories={storefrontCatalog.categories}
           events={storefrontCatalog.events}
+          blogs={storefrontCatalog.blogs}
           onAuthSuccess={async (token, user) => {
             window.localStorage.setItem("voidAuthToken", token);
             setIsSessionReady(false);
@@ -261,7 +284,7 @@ function App() {
 async function fetchAuthUser(token) {
   const controller = new AbortController();
   const timeoutId = window.setTimeout(() => controller.abort(), 8000);
-  const response = await fetch("/api/auth/me", {
+  const response = await apiFetch("/api/auth/me", {
     headers: {
       Authorization: `Bearer ${token}`
     },
@@ -276,7 +299,7 @@ async function fetchAuthUser(token) {
   return data.user || null;
 }
 
-function Page({ authToken, categories, currentPath, events, isAdmin, isLoggedIn, isSessionReady, onAuthSuccess, onLogout, onRequireLogin, products, sessionError }) {
+function Page({ authToken, blogs, categories, currentPath, events, isAdmin, isLoggedIn, isSessionReady, onAuthSuccess, onLogout, onRequireLogin, products, sessionError }) {
   if (currentPath === "/login") {
     if (isLoggedIn) {
       window.location.hash = "#/account";
@@ -349,15 +372,20 @@ function Page({ authToken, categories, currentPath, events, isAdmin, isLoggedIn,
     return <AboutPage />;
   }
 
-  if (currentPath === "/events") {
+  if (currentPath.startsWith("/events")) {
     return (
       <EventsPage
         authToken={authToken}
+        currentPath={currentPath}
         events={events}
         isLoggedIn={isLoggedIn}
         onRequireLogin={onRequireLogin}
       />
     );
+  }
+
+  if (currentPath.startsWith("/blog")) {
+    return <BlogPage blogs={blogs} currentPath={currentPath} />;
   }
 
   if (policyPages[currentPath]) {
@@ -378,7 +406,7 @@ function Page({ authToken, categories, currentPath, events, isAdmin, isLoggedIn,
     return <BagPage authToken={authToken} isLoggedIn={isLoggedIn} products={products} onRequireLogin={onRequireLogin} />;
   }
 
-  return <HomePage />;
+  return <HomePage products={products} />;
 }
 
 

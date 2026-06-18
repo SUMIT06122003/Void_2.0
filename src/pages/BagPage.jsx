@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { clearCartDraft, readCartDraft } from "../utils/cart";
 import { products as fallbackProducts } from "../data/storeData";
+import { apiFetch } from "../utils/api";
+import { trackInitiateCheckout, trackPurchase } from "../utils/metaPixel";
 
 function BagPage({
   authToken = "",
@@ -42,7 +44,7 @@ function BagPage({
       setCustomerError("");
 
       try {
-        const response = await fetch("/api/auth/me", {
+        const response = await apiFetch("/api/auth/me", {
           headers: {
             Authorization: `Bearer ${authToken}`
           }
@@ -119,6 +121,10 @@ function BagPage({
     setCheckoutDone(false);
     setConfirmedOrderId("");
     setCheckoutOpen(true);
+    trackInitiateCheckout({
+      items: getAnalyticsItems(items, productByName),
+      value: getCartValue(items, productByName)
+    });
   };
 
   const closeCheckout = () => {
@@ -158,7 +164,7 @@ function BagPage({
           selections: entry.selections || {}
         };
       });
-      const response = await fetch("/api/orders", {
+      const response = await apiFetch("/api/orders", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${authToken}`,
@@ -187,6 +193,11 @@ function BagPage({
       setConfirmedOrderId(data.order?.id || "");
       setCheckoutDone(true);
       setCheckoutForm((form) => ({ ...form, address: shippingAddress }));
+      trackPurchase({
+        items: orderItems,
+        orderId: data.order?.id || "",
+        value: getCartValue(orderItems)
+      });
       window.dispatchEvent(
         new CustomEvent("void:toast", { detail: { msg: `Payment successful: ${data.order?.id || "order saved"}` } })
       );
@@ -550,6 +561,26 @@ function getOrderTotal(items) {
     currency: "INR",
     maximumFractionDigits: 0
   }).format(total);
+}
+
+function getAnalyticsItems(items, productByName) {
+  return items.map((entry) => {
+    const product = productByName?.get?.(entry.product);
+    return {
+      id: product?.id || product?.sku || entry.product,
+      product: entry.product,
+      name: product?.name || entry.product,
+      price: product?.price || entry.price || "",
+      quantity: entry.quantity || 1
+    };
+  });
+}
+
+function getCartValue(items, productByName) {
+  return items.reduce((sum, item) => {
+    const product = productByName?.get?.(item.product);
+    return sum + parsePrice(product?.price || item.price);
+  }, 0);
 }
 
 function parsePrice(value) {

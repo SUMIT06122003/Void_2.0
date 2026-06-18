@@ -1,5 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { productToSlug } from "../utils/catalog";
+import { trackAddToCart, trackViewContent } from "../utils/metaPixel";
 
 function ProductPage({ currentPath, products = [] }) {
   const slug = currentPath.replace(/^\/product\//, "");
@@ -13,6 +14,12 @@ function ProductPage({ currentPath, products = [] }) {
   const variantGroups = product?.variants ? Object.entries(product.variants) : [];
   const hasQuantity = product?.quantity !== undefined && product?.quantity !== "";
   const isOutOfStock = hasQuantity && Number(product.quantity) <= 0;
+
+  useEffect(() => {
+    if (product) {
+      trackViewContent(product);
+    }
+  }, [product]);
 
   if (!product) {
     return (
@@ -51,6 +58,7 @@ function ProductPage({ currentPath, products = [] }) {
       const draft = raw ? JSON.parse(raw) : [];
       window.localStorage.setItem(key, JSON.stringify([...draft, payload]));
       window.dispatchEvent(new CustomEvent("void:add-to-bag", { detail: { product: product.name } }));
+      trackAddToCart(product);
     } catch {
       // ignore storage errors
     }

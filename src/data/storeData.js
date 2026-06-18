@@ -88,6 +88,12 @@ export const policyPages = {
     body: "Product stories, training notes, launch updates, and activewear guides from VOID.",
     details: ["Training and fit guides", "Product launch notes", "Brand updates"]
   },
+  "/reviews": {
+    eyebrow: "Reviews",
+    title: "Real People. Real Results.",
+    body: "Customer stories, training clips, and everyday feedback from the VOID community.",
+    details: ["Video reviews", "Fit feedback", "Product experience"]
+  },
   "/contact": {
     eyebrow: "Contact Us",
     title: "We Are Here For You",

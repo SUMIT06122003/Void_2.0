@@ -43,6 +43,8 @@ module.exports = {
   },
   plugins: [
     new webpack.DefinePlugin({
+      __API_BASE_URL__: JSON.stringify(process.env.API_BASE_URL || ""),
+      __META_PIXEL_ID__: JSON.stringify(process.env.META_PIXEL_ID || ""),
       __CLOUDINARY_CLOUD_NAME__: JSON.stringify(process.env.CLOUDINARY_CLOUD_NAME || ""),
       __CLOUDINARY_BASE_FOLDER__: JSON.stringify(process.env.CLOUDINARY_BASE_FOLDER || "void"),
       __CLOUDINARY_IMAGE_TRANSFORM__: JSON.stringify(process.env.CLOUDINARY_IMAGE_TRANSFORM || "f_auto,q_auto"),

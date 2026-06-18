@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
+import { X } from "lucide-react";
 import { productToSlug } from "../utils/catalog";
+import { trackAddToCart } from "../utils/metaPixel";
 
-function ProductGrid({ products }) {
+function ProductGrid({ products, className = "" }) {
   const [activeProduct, setActiveProduct] = useState(null);
   const [activeGallery, setActiveGallery] = useState(null);
   const [activeGalleryIndex, setActiveGalleryIndex] = useState(0);
@@ -86,6 +88,7 @@ function ProductGrid({ products }) {
       window.dispatchEvent(
         new CustomEvent("void:add-to-bag", { detail: { product: product.name } })
       );
+      trackAddToCart(product);
     } catch {
       // ignore
     }
@@ -131,7 +134,7 @@ function ProductGrid({ products }) {
                 <h3>{activeProduct.name}</h3>
               </div>
               <button type="button" className="vp-close" onClick={closeVariantModal} aria-label="Close">
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -190,7 +193,7 @@ function ProductGrid({ products }) {
                 <h3>{activeGallery.name}</h3>
               </div>
               <button type="button" className="vp-close" onClick={closeGalleryModal} aria-label="Close">
-                ✕
+                <X size={18} />
               </button>
             </div>
 
@@ -229,7 +232,7 @@ function ProductGrid({ products }) {
         </div>
       ) : null}
 
-      <div className="product-grid">
+      <div className={`product-grid ${className}`.trim()}>
         {products.map((product) => {
           const hasQuantity = product.quantity !== undefined && product.quantity !== "";
           const isOutOfStock = hasQuantity && Number(product.quantity) <= 0;

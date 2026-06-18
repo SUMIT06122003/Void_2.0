@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ChevronRight, Trash2 } from "lucide-react";
 import { accountItems, products, testimonials } from "../data/storeData";
+import { apiFetch } from "../utils/api";
 import { pauseOtherVideos } from "../utils/videoPlayback";
 
 const emptyAccountData = {
@@ -121,7 +122,7 @@ function AccountPage({ authToken, currentPath, onDemoLogout }) {
       setError("");
 
       try {
-        const response = await fetch("/api/auth/me", {
+        const response = await apiFetch("/api/auth/me", {
           headers: {
             Authorization: `Bearer ${authToken}`
           }
@@ -415,7 +416,7 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
     setIsSaving(true);
 
     try {
-      const response = await fetch("/api/auth/addresses", {
+      const response = await apiFetch("/api/auth/addresses", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${authToken}`,
@@ -458,7 +459,7 @@ function AddAddressManager({ account, authToken, onAccountUpdate }) {
     setMessage("");
 
     try {
-      const response = await fetch(`/api/auth/addresses/${encodeURIComponent(addressId)}`, {
+      const response = await apiFetch(`/api/auth/addresses/${encodeURIComponent(addressId)}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${authToken}`
