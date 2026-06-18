@@ -139,17 +139,30 @@ function StoreSpecsStrip() {
 }
 
 function CommunitySignup() {
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const mobile = new FormData(event.currentTarget).get("mobile")?.toString().trim();
+    window.location.hash = mobile ? `#/register?mobile=${encodeURIComponent(mobile)}` : "#/register";
+  };
+
   return (
     <section className="void-community" aria-label="Join the VOID community">
       <div>
         <h2>Join The VOID Community</h2>
         <p>Get early access to new drops, exclusive offers and fitness insights.</p>
       </div>
-      <form onSubmit={(event) => event.preventDefault()}>
-        <label className="sr-only" htmlFor="void-community-email">
-          Email address
+      <form onSubmit={handleSubmit}>
+        <label className="sr-only" htmlFor="void-community-mobile">
+          Mobile number
         </label>
-        <input id="void-community-email" type="email" placeholder="Enter your email" />
+        <input
+          id="void-community-mobile"
+          name="mobile"
+          type="tel"
+          inputMode="tel"
+          autoComplete="tel"
+          placeholder="Enter your mobile number"
+        />
         <button type="submit">Join Now</button>
       </form>
     </section>

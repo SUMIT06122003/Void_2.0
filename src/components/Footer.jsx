@@ -25,6 +25,12 @@ const socialLinks = [
 ];
 
 function Footer() {
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const mobile = new FormData(event.currentTarget).get("mobile")?.toString().trim();
+    window.location.hash = mobile ? `#/register?mobile=${encodeURIComponent(mobile)}` : "#/register";
+  };
+
   return (
     <footer className="void-footer">
       <div className="void-footer-brand">
@@ -65,11 +71,18 @@ function Footer() {
 
       <div className="void-footer-news">
         <strong>Stay Updated</strong>
-        <form onSubmit={(event) => event.preventDefault()}>
-          <label className="sr-only" htmlFor="footer-email">
-            Email address
+        <form onSubmit={handleSubmit}>
+          <label className="sr-only" htmlFor="footer-mobile">
+            Mobile number
           </label>
-          <input id="footer-email" type="email" placeholder="Enter your email" />
+          <input
+            id="footer-mobile"
+            name="mobile"
+            type="tel"
+            inputMode="tel"
+            autoComplete="tel"
+            placeholder="Enter mobile number"
+          />
           <button type="submit" aria-label="Subscribe">
             →
           </button>

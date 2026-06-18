@@ -89,7 +89,8 @@ app.post("/api/otp/verify", handleVerifyOtp);
 
 async function handleSendOtp(req, res) {
   const mobile = normalizeIndianMobile(req.body.mobile);
-  const mode = req.body.mode === "register" ? "register" : "login";
+  const requestedMode = String(req.body.mode || "").toLowerCase();
+  const mode = requestedMode === "register" || requestedMode === "reset" ? requestedMode : "login";
   const name = normalizeName(req.body.name);
   const password = String(req.body.password || "");
   const user = mobile ? await findUserByMobile(mobile) : null;
@@ -108,6 +109,10 @@ async function handleSendOtp(req, res) {
 
   if (mode === "register" && user) {
     return res.status(409).json({ message: "An account already exists for this mobile number." });
+  }
+
+  if (mode === "reset" && !user) {
+    return res.status(404).json({ message: "No account exists for this mobile number." });
   }
 
   if (mode === "login") {
@@ -163,6 +168,7 @@ async function handleLogin(req, res) {
 async function handleVerifyOtp(req, res) {
   const mobile = normalizeIndianMobile(req.body.mobile);
   const otp = String(req.body.otp || "").trim();
+  const newPassword = String(req.body.password || req.body.newPassword || "");
   const session = otpSessions.get(mobile);
 
   if (!mobile) {
@@ -195,6 +201,14 @@ async function handleVerifyOtp(req, res) {
         password: session.passwordHash,
         createdAt: new Date().toISOString()
       });
+    }
+
+    if (session.mode === "reset") {
+      if (newPassword.length < 6) {
+        return res.status(400).json({ message: "Password must be at least 6 characters." });
+      }
+
+      user = await updateUserPasswordByMobile(mobile, hashPassword(newPassword));
     }
 
     if (!user) {
@@ -1052,6 +1066,35 @@ async function createUser(user) {
   users.push(nextUser);
   writeUsersToFile(users);
   return nextUser;
+}
+
+async function updateUserPasswordByMobile(mobile, passwordHash) {
+  const db = await getDatabase();
+  const updatedAt = new Date().toISOString();
+
+  if (db) {
+    const result = await db.collection("users").findOneAndUpdate(
+      { mobile },
+      { $set: { password: passwordHash, updatedAt } },
+      { returnDocument: "after" }
+    );
+    return cleanMongoUser(result);
+  }
+
+  const users = readUsersFromFile();
+  const userIndex = users.findIndex((entry) => entry.mobile === mobile);
+
+  if (userIndex < 0) {
+    return null;
+  }
+
+  users[userIndex] = {
+    ...users[userIndex],
+    password: passwordHash,
+    updatedAt
+  };
+  writeUsersToFile(users);
+  return users[userIndex];
 }
 
 async function addAddressToUser(userId, address) {

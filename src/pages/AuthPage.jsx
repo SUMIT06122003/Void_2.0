@@ -5,6 +5,7 @@ import { formatIndianPhoneNumber, getOtpErrorMessage } from "../utils/authHelper
 
 function AuthPage({ mode, onAuthSuccess }) {
   const isRegister = mode === "register";
+  const isReset = mode === "reset";
   const featureProduct = products[isRegister ? 1 : 0] || products[0];
   const featureReview = testimonials[0];
 
@@ -22,7 +23,7 @@ function AuthPage({ mode, onAuthSuccess }) {
 
   useEffect(() => {
     setName("");
-    setMobile("");
+    setMobile(getMobileFromHash());
     setPassword("");
     setConfirmPassword("");
     setOtp("");
@@ -59,10 +60,16 @@ function AuthPage({ mode, onAuthSuccess }) {
       return;
     }
 
+    if (isReset) {
+      setPassword("");
+      setConfirmPassword("");
+      setOtp("");
+    }
+
     setIsSubmitting(true);
     try {
       await requestOtp("/api/auth/otp/send", {
-        mode,
+        mode: isReset ? "reset" : mode,
         name: name.trim(),
         mobile: formattedPhone,
         password
@@ -116,8 +123,18 @@ function AuthPage({ mode, onAuthSuccess }) {
       return;
     }
 
-    if (!/^\d{4}$/.test(otp.trim())) {
-      setError("Enter the 4-digit OTP.");
+    if (!/^\d{4,8}$/.test(otp.trim())) {
+      setError("Enter the OTP sent to your mobile number.");
+      return;
+    }
+
+    if (isReset && password.length < 6) {
+      setError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (isReset && password !== confirmPassword) {
+      setError("Password and confirm password must match.");
       return;
     }
 
@@ -125,10 +142,11 @@ function AuthPage({ mode, onAuthSuccess }) {
     try {
       const data = await requestOtp("/api/auth/otp/verify", {
         mobile: formattedPhone,
-        otp: otp.trim()
+        otp: otp.trim(),
+        password: isReset ? password : undefined
       });
       const user = await onAuthSuccess(data.token, data.user);
-      setStatus(isRegister ? "Account created successfully." : "Login successful.");
+      setStatus(isRegister ? "Account created successfully." : isReset ? "Password updated successfully." : "Login successful.");
       window.location.hash = user?.isAdmin ? "#/admin" : "#/account";
     } catch (verifyError) {
       setError(getOtpErrorMessage(verifyError));
@@ -141,11 +159,13 @@ function AuthPage({ mode, onAuthSuccess }) {
     <section className="auth-page">
       <div className="auth-copy">
         <span>VOID Account</span>
-        <h1>{isRegister ? "Create Account" : "Login"}</h1>
+        <h1>{isRegister ? "Create Account" : isReset ? "Reset Password" : "Login"}</h1>
         <p>
           {isRegister
             ? "Create your VOID account with your mobile number and password."
-            : "Access orders, tracking, wishlist, rewards, and saved details."}
+            : isReset
+              ? "Verify your mobile number with OTP and create a new password."
+              : "Access orders, tracking, wishlist, rewards, and saved details."}
         </p>
         <div className="auth-media-card">
           <img src={featureProduct.gallery?.[0] || featureProduct.image} alt={featureProduct.name} />
@@ -190,20 +210,22 @@ function AuthPage({ mode, onAuthSuccess }) {
           />
         </div>
 
-        <div className="form-field">
-          <label htmlFor="password">{isRegister ? "Create Password" : "Password"}</label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            autoComplete={isRegister ? "new-password" : "current-password"}
-            placeholder={isRegister ? "Create password" : "Enter password"}
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
-          />
-        </div>
+        {!isReset || otpSent ? (
+          <div className="form-field">
+            <label htmlFor="password">{isRegister || isReset ? "Create Password" : "Password"}</label>
+            <input
+              id="password"
+              name="password"
+              type="password"
+              autoComplete={isRegister || isReset ? "new-password" : "current-password"}
+              placeholder={isRegister || isReset ? "Create password" : "Enter password"}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+            />
+          </div>
+        ) : null}
 
-        {isRegister ? (
+        {isRegister || (isReset && otpSent) ? (
           <div className="form-field">
             <label htmlFor="confirmPassword">Confirm Password</label>
             <input
@@ -227,7 +249,7 @@ function AuthPage({ mode, onAuthSuccess }) {
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
-              placeholder="Enter 4-digit OTP"
+              placeholder="Enter OTP"
               value={otp}
               onChange={(event) => setOtp(event.target.value)}
             />
@@ -240,26 +262,39 @@ function AuthPage({ mode, onAuthSuccess }) {
         <button
           type="button"
           disabled={isSubmitting}
-          onClick={isRegister ? (otpSent ? handleVerifyOtp : handleSendOtp) : handleLogin}
+          onClick={isRegister || isReset ? (otpSent ? handleVerifyOtp : handleSendOtp) : handleLogin}
         >
           {isSubmitting
             ? "Please Wait"
-            : isRegister
+            : isRegister || isReset
               ? otpSent
-                ? "Verify OTP"
+                ? isReset
+                  ? "Reset Password"
+                  : "Verify OTP"
                 : "Send OTP"
               : "Login"}
         </button>
 
+        {!isRegister && !isReset ? (
+          <a className="forgot-password-link" href="#/forgot-password">
+            Forgot password?
+          </a>
+        ) : null}
+
         <p>
-          {isRegister ? "Already have an account?" : "New to VOID?"}{" "}
-          <a href={isRegister ? "#/login" : "#/register"}>
-            {isRegister ? "Login" : "Create account"}
+          {isRegister || isReset ? "Already have an account?" : "New to VOID?"}{" "}
+          <a href={isRegister || isReset ? "#/login" : "#/register"}>
+            {isRegister || isReset ? "Login" : "Create account"}
           </a>
         </p>
       </form>
     </section>
   );
+}
+
+function getMobileFromHash() {
+  const query = window.location.hash.split("?")[1] || "";
+  return new URLSearchParams(query).get("mobile") || "";
 }
 
 async function requestOtp(url, payload) {

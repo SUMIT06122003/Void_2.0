@@ -204,5 +204,11 @@
       "status": "Published"
     }
   ],
-  "updatedAt": "2026-06-18T05:28:58.828Z"
+  "promoStrip": {
+    "enabled": true,
+    "message": "First order 20% off",
+    "ctaLabel": "Shop Now ->",
+    "href": "#/shop"
+  },
+  "updatedAt": "2026-06-18T09:01:55.102Z"
 }

@@ -318,6 +318,15 @@ function Page({ authToken, blogs, categories, currentPath, events, isAdmin, isLo
     return <AuthPage mode="register" onAuthSuccess={onAuthSuccess} />;
   }
 
+  if (currentPath === "/forgot-password") {
+    if (isLoggedIn) {
+      window.location.hash = "#/account";
+      return <AccountPage authToken={authToken} currentPath="/account" onDemoLogout={onLogout} />;
+    }
+
+    return <AuthPage mode="reset" onAuthSuccess={onAuthSuccess} />;
+  }
+
   if (currentPath.startsWith("/account")) {
     if (!isLoggedIn) {
       window.location.hash = "#/login";

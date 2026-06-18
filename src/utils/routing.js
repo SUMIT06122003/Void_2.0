@@ -1,5 +1,6 @@
 export function getCurrentPath() {
-  const path = window.location.hash.replace("#", "") || "/";
+  const hashPath = window.location.hash.replace("#", "") || "/";
+  const path = hashPath.split("?")[0] || "/";
   return path.startsWith("/") ? path : `/${path}`;
 }
 
