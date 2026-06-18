@@ -15709,13 +15709,14 @@ body {
   }
 
   .void-hero-copy {
-    align-self: center !important;
+    align-self: start !important;
     max-width: 178px !important;
-    padding: 0 0 0 8px !important;
+    padding: clamp(82px, 11svh, 112px) 0 0 8px !important;
   }
 
   .void-hero-media {
-    align-self: center !important;
+    align-self: start !important;
+    margin-top: clamp(250px, 34svh, 310px) !important;
     top: 124px !important;
     transform: translateY(-28px) !important;
   }
@@ -15742,6 +15743,7 @@ body {
   }
 
   .void-hero-media {
+    margin-top: clamp(232px, 32svh, 286px) !important;
     top: 120px !important;
     transform: translateY(-24px) !important;
   }
