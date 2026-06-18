@@ -14965,16 +14965,16 @@ body {
 /* Final compact mobile home hero. */
 @media (max-width: 700px) {
   .void-hero {
-    grid-template-columns: minmax(0, 0.8fr) minmax(132px, 1fr) !important;
-    grid-template-rows: minmax(430px, 58vh) auto !important;
-    min-height: calc(58vh + 180px) !important;
+    grid-template-columns: minmax(0, 0.92fr) minmax(124px, 0.86fr) !important;
+    grid-template-rows: minmax(348px, 47vh) auto !important;
+    min-height: calc(47vh + 96px) !important;
     overflow: visible !important;
   }
 
   .void-hero-copy {
     align-self: center !important;
-    max-width: 172px !important;
-    padding: 18px 0 24px 16px !important;
+    max-width: 184px !important;
+    padding: 10px 0 18px 16px !important;
   }
 
   .void-hero-copy span {
@@ -15008,24 +15008,25 @@ body {
   }
 
   .void-hero-media {
+    align-self: center !important;
     min-height: 0 !important;
-    padding: 42px 2px 18px 0 !important;
+    padding: 0 4px 0 0 !important;
     position: sticky !important;
     top: 62px !important;
   }
 
   .void-hero-media img {
-    max-height: min(230px, 38vh) !important;
-    max-width: min(205px, 98%) !important;
-    transform: translateY(28px) rotate(2deg) !important;
+    max-height: min(205px, 32vh) !important;
+    max-width: min(194px, 100%) !important;
+    transform: translateY(-2px) rotate(2deg) !important;
   }
 }
 
 @media (max-width: 380px) {
   .void-hero {
-    grid-template-columns: minmax(0, 0.76fr) minmax(118px, 1fr) !important;
-    grid-template-rows: minmax(400px, 56vh) auto !important;
-    min-height: calc(56vh + 160px) !important;
+    grid-template-columns: minmax(0, 0.9fr) minmax(108px, 0.82fr) !important;
+    grid-template-rows: minmax(326px, 45vh) auto !important;
+    min-height: calc(45vh + 88px) !important;
   }
 
   .void-hero-copy {
@@ -15038,8 +15039,8 @@ body {
   }
 
   .void-hero-media img {
-    max-height: min(205px, 36vh) !important;
-    max-width: min(180px, 100%) !important;
+    max-height: min(178px, 30vh) !important;
+    max-width: min(164px, 100%) !important;
   }
 }
 
