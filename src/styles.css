@@ -14962,6 +14962,87 @@ body {
   }
 }
 
+/* Final compact mobile home hero. */
+@media (max-width: 700px) {
+  .void-hero {
+    grid-template-columns: minmax(0, 0.8fr) minmax(132px, 1fr) !important;
+    grid-template-rows: minmax(430px, 58vh) auto !important;
+    min-height: calc(58vh + 180px) !important;
+    overflow: visible !important;
+  }
+
+  .void-hero-copy {
+    align-self: center !important;
+    max-width: 172px !important;
+    padding: 18px 0 24px 16px !important;
+  }
+
+  .void-hero-copy span {
+    font-size: 8px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .void-hero-copy h1 {
+    font-size: clamp(25px, 7.8vw, 32px) !important;
+    line-height: 0.94 !important;
+    max-width: 8.6ch !important;
+  }
+
+  .void-hero-copy p {
+    font-size: 10px !important;
+    line-height: 1.35 !important;
+    margin: 12px 0 14px !important;
+    max-width: 20ch !important;
+  }
+
+  .void-hero-copy .void-button {
+    font-size: 9px !important;
+    gap: 6px !important;
+    min-height: 32px !important;
+    padding: 0 11px !important;
+  }
+
+  .void-hero-copy .void-button svg {
+    height: 14px !important;
+    width: 14px !important;
+  }
+
+  .void-hero-media {
+    min-height: 0 !important;
+    padding: 42px 2px 18px 0 !important;
+    position: sticky !important;
+    top: 62px !important;
+  }
+
+  .void-hero-media img {
+    max-height: min(230px, 38vh) !important;
+    max-width: min(205px, 98%) !important;
+    transform: translateY(28px) rotate(2deg) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .void-hero {
+    grid-template-columns: minmax(0, 0.76fr) minmax(118px, 1fr) !important;
+    grid-template-rows: minmax(400px, 56vh) auto !important;
+    min-height: calc(56vh + 160px) !important;
+  }
+
+  .void-hero-copy {
+    max-width: 154px !important;
+    padding-left: 14px !important;
+  }
+
+  .void-hero-copy h1 {
+    font-size: clamp(23px, 7.6vw, 29px) !important;
+  }
+
+  .void-hero-media img {
+    max-height: min(205px, 36vh) !important;
+    max-width: min(180px, 100%) !important;
+  }
+}
+
 /* Final mobile testimonials: swipe horizontally instead of stacking. */
 @media (max-width: 640px) {
   .void-reviews {
