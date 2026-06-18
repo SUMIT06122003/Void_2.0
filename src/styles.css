@@ -5338,11 +5338,11 @@ video {
   }
 
   35% {
-    transform: translate3d(0, -22px, 0) rotate(0.8deg);
+    transform: translate3d(0, -30px, 0) rotate(0.7deg);
   }
 
   70% {
-    transform: translate3d(0, 9px, 0) rotate(3.2deg);
+    transform: translate3d(0, 14px, 0) rotate(3.4deg);
   }
 }
 
@@ -15704,24 +15704,24 @@ body {
 
   .void-hero {
     grid-template-columns: minmax(120px, 0.78fr) minmax(0, 1.22fr) !important;
-    grid-template-rows: minmax(292px, 47svh) auto !important;
-    min-height: calc(58svh + 132px) !important;
+    grid-template-rows: minmax(calc(100svh - 76px), auto) auto !important;
+    min-height: calc(100svh + 132px) !important;
   }
 
   .void-hero-copy {
     align-self: center !important;
     max-width: 178px !important;
-    padding: 8px 0 12px 8px !important;
+    padding: 0 0 0 8px !important;
   }
 
   .void-hero-media {
     align-self: center !important;
-    top: 104px !important;
+    top: 124px !important;
     transform: translateY(-28px) !important;
   }
 
   .void-hero-media img {
-    animation: mobileVoidBoxFloat 9.5s ease-in-out infinite !important;
+    animation: mobileVoidBoxFloat 10.5s ease-in-out infinite !important;
     max-height: min(338px, 48vh) !important;
     will-change: transform !important;
     width: min(330px, 65vw) !important;
@@ -15730,19 +15730,24 @@ body {
 
 @media (max-width: 380px) {
   .void-hero {
-    grid-template-rows: minmax(282px, 46svh) auto !important;
-    min-height: calc(56svh + 118px) !important;
+    grid-template-rows: minmax(calc(100svh - 76px), auto) auto !important;
+    min-height: calc(100svh + 118px) !important;
   }
 
   .void-hero-media img {
-    animation: mobileVoidBoxFloat 9.5s ease-in-out infinite !important;
+    animation: mobileVoidBoxFloat 10.5s ease-in-out infinite !important;
     max-height: min(298px, 45vh) !important;
     will-change: transform !important;
     width: min(290px, 65vw) !important;
   }
 
   .void-hero-media {
-    top: 100px !important;
+    top: 120px !important;
     transform: translateY(-24px) !important;
   }
+}
+
+.void-footer-brand img {
+  filter: invert(1) contrast(1.2) !important;
+  opacity: 1 !important;
 }
