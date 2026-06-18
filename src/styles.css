@@ -14089,7 +14089,7 @@ body {
     filter: drop-shadow(0 28px 30px rgba(0, 0, 0, 0.24)) !important;
     max-height: 440px !important;
     opacity: 0.34 !important;
-    transform: translateY(22px) scale(1.08) !important;
+    transform: translateY(22px) scale(1.08);
     width: min(760px, 112vw) !important;
   }
 
@@ -14185,7 +14185,7 @@ body {
   .void-hero-media img {
     max-height: 390px !important;
     opacity: 0.38 !important;
-    transform: translateY(64px) scale(1.14) !important;
+    transform: translateY(64px) scale(1.14);
     width: min(620px, 128vw) !important;
   }
 }
@@ -14516,7 +14516,7 @@ body {
   .void-hero-media img {
     max-height: 390px !important;
     opacity: 0.36 !important;
-    transform: rotate(4deg) scale(1.08) !important;
+    transform: rotate(4deg) scale(1.08);
     width: min(620px, 112vw) !important;
   }
 }
@@ -14932,7 +14932,7 @@ body {
     max-height: min(410px, 58vh) !important;
     max-width: min(360px, 96%) !important;
     opacity: 1 !important;
-    transform: translateY(18px) rotate(2deg) !important;
+    transform: translateY(18px) rotate(2deg);
     width: auto !important;
   }
 
@@ -14973,7 +14973,7 @@ body {
   .void-hero-media img {
     max-height: min(340px, 52vh) !important;
     max-width: min(250px, 100%) !important;
-    transform: translateY(18px) rotate(2deg) !important;
+    transform: translateY(18px) rotate(2deg);
   }
 }
 
@@ -15044,7 +15044,7 @@ body {
       drop-shadow(0 64px 58px rgba(0, 0, 0, 0.24)) !important;
     max-height: min(320px, 50vh) !important;
     max-width: none !important;
-    transform: translateY(-2px) rotate(2deg) !important;
+    transform: translateY(-2px) rotate(2deg);
     width: min(304px, 58vw) !important;
   }
 }
