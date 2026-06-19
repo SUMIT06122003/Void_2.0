@@ -15788,3 +15788,107 @@ body {
   filter: invert(1) contrast(1.2) !important;
   opacity: 1 !important;
 }
+
+/* Mobile home hero: editorial, left-aligned composition with sticky product art. */
+@media (max-width: 700px) {
+  .void-hero {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: minmax(calc(100svh - 76px), auto) auto !important;
+    min-height: calc(100svh + 150px) !important;
+  }
+
+  .void-hero-copy {
+    align-self: start !important;
+    justify-self: stretch !important;
+    max-width: none !important;
+    padding: clamp(28px, 4svh, 42px) 29px 0 !important;
+    text-align: left !important;
+  }
+
+  .void-hero-copy span {
+    margin: 0 0 26px !important;
+    position: relative;
+    text-align: left !important;
+    width: auto !important;
+  }
+
+  .void-hero-copy span::after {
+    background: #b8e643;
+    bottom: -14px;
+    content: "";
+    height: 2px;
+    left: 0;
+    position: absolute;
+    width: 28px;
+  }
+
+  .void-hero-copy h1,
+  .void-hero-copy p {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+  }
+
+  .void-hero-copy h1 {
+    font-size: clamp(42px, 12.2vw, 50px) !important;
+    letter-spacing: -0.025em !important;
+    line-height: 0.98 !important;
+    max-width: 10.5ch !important;
+  }
+
+  .void-hero-copy p {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    margin-bottom: 28px !important;
+    margin-top: 28px !important;
+    max-width: 30ch !important;
+  }
+
+  .void-hero-copy .void-button {
+    font-size: 13px !important;
+    gap: 18px !important;
+    min-height: 52px !important;
+    padding: 0 19px !important;
+  }
+
+  .void-hero-copy .void-button svg {
+    height: 20px !important;
+    width: 20px !important;
+  }
+
+  .void-hero-media {
+    align-self: start !important;
+    justify-content: center !important;
+    margin-top: clamp(332px, 43svh, 372px) !important;
+    padding: 0 10px !important;
+    position: sticky !important;
+    top: 120px !important;
+    transform: none !important;
+  }
+
+  .void-hero-media img {
+    max-height: min(500px, 58vh) !important;
+    width: min(520px, 96vw) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .void-hero-copy {
+    padding-left: 24px !important;
+    padding-right: 24px !important;
+  }
+
+  .void-hero-copy h1 {
+    font-size: clamp(39px, 12vw, 46px) !important;
+  }
+
+  .void-hero-media {
+    margin-top: clamp(320px, 44svh, 356px) !important;
+    top: 116px !important;
+    transform: none !important;
+  }
+
+  .void-hero-media img {
+    max-height: min(450px, 56vh) !important;
+    width: min(480px, 96vw) !important;
+  }
+}
