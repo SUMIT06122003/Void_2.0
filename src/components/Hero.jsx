@@ -18,6 +18,11 @@ function Hero() {
 
       <div className="void-hero-media" aria-label="VOID activewear hero">
         <img src={voidBox} alt="VOID activewear gift box" />
+        <div className="void-hero-signature" aria-hidden="true">
+          <i />
+          <span>Fueling Ambition</span>
+          <i />
+        </div>
       </div>
 
       <div className="void-proof-row" aria-label="Store benefits">

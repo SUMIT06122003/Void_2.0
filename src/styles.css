@@ -4778,6 +4778,177 @@ button {
   }
 }
 
+/* Exact mobile home composition from the supplied hero reference. */
+.void-hero-signature {
+  display: none;
+}
+
+@media (max-width: 700px) {
+  .void-promo-bar {
+    display: none !important;
+  }
+
+  .site-header,
+  .site-header.is-lifted,
+  .site-header.is-menu-open {
+    background: #fff !important;
+    border-bottom: 1px solid #e8e8e8 !important;
+    padding: 0 !important;
+  }
+
+  .primary-nav {
+    background: #fff !important;
+    gap: 8px !important;
+    grid-template-columns: minmax(0, 1fr) 44px 44px !important;
+    grid-template-rows: 60px !important;
+    height: 60px !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    min-height: 60px !important;
+    padding: 0 18px !important;
+    width: 100% !important;
+  }
+
+  .brand {
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    min-height: 0 !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+  }
+
+  .brand img {
+    width: 70px !important;
+  }
+
+  .nav-actions {
+    grid-column: 2 !important;
+    min-height: 44px !important;
+  }
+
+  .nav-actions .bag-button,
+  .icon-button.mobile-only {
+    background: #fff !important;
+    border: 1px solid #dedede !important;
+    border-radius: 12px !important;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.04) !important;
+    height: 44px !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+    width: 44px !important;
+  }
+
+  .icon-button.mobile-only {
+    grid-column: 3 !important;
+  }
+
+  .icon-button.mobile-only svg,
+  .nav-actions svg {
+    height: 22px !important;
+    width: 22px !important;
+  }
+
+  .void-hero {
+    background: #fbfbfa !important;
+    grid-template-rows: minmax(calc(100svh - 60px), auto) auto !important;
+    min-height: calc(100svh + 150px) !important;
+  }
+
+  .void-hero-copy {
+    padding: 30px 29px 0 !important;
+  }
+
+  .void-hero-copy span {
+    font-size: 10px !important;
+    letter-spacing: 0.16em !important;
+    margin-bottom: 27px !important;
+  }
+
+  .void-hero-copy span::after {
+    bottom: -14px !important;
+    height: 2px !important;
+    width: 27px !important;
+  }
+
+  .void-hero-copy h1 {
+    font-size: clamp(40px, 11vw, 44px) !important;
+    letter-spacing: -0.035em !important;
+    line-height: 0.98 !important;
+    max-width: none !important;
+  }
+
+  .void-hero-copy p {
+    font-size: 16px !important;
+    line-height: 1.5 !important;
+    margin: 26px 0 20px !important;
+    max-width: 31ch !important;
+  }
+
+  .void-hero-copy .void-button {
+    border-radius: 6px !important;
+    font-size: 12px !important;
+    gap: 16px !important;
+    min-height: 40px !important;
+    padding: 0 18px !important;
+  }
+
+  .void-hero-media {
+    flex-direction: column !important;
+    gap: 32px !important;
+    margin-top: 326px !important;
+    padding: 0 !important;
+    top: 92px !important;
+  }
+
+  .void-hero-media img {
+    max-height: none !important;
+    width: min(560px, 112vw) !important;
+  }
+
+  .void-hero-signature {
+    align-items: center;
+    color: #111;
+    display: flex;
+    font-size: 9px;
+    font-weight: 700;
+    gap: 18px;
+    justify-content: center;
+    letter-spacing: 0.55em;
+    padding-left: 0.55em;
+    text-transform: uppercase;
+    width: min(332px, 88vw);
+  }
+
+  .void-hero-signature i {
+    background: #a8a8a8;
+    display: block;
+    height: 1px;
+    width: 44px;
+  }
+
+  .void-hero-signature span {
+    white-space: nowrap;
+  }
+}
+
+@media (max-width: 380px) {
+  .void-hero-copy {
+    padding-left: 28px !important;
+    padding-right: 28px !important;
+  }
+
+  .void-hero-copy h1 {
+    font-size: clamp(38px, 10.7vw, 41px) !important;
+  }
+
+  .void-hero-media {
+    margin-top: 314px !important;
+    top: 88px !important;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
