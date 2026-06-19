@@ -14,8 +14,10 @@ function Hero() {
           </a>
         </div>
 
-        <div className="void-hero-media is-box" aria-label="VOID premium activewear box">
-          <img src={voidBox} alt="VOID premium activewear box" />
+        <div className="void-hero-sticky-stage">
+          <div className="void-hero-media is-box" aria-label="VOID premium activewear box">
+            <img src={voidBox} alt="VOID premium activewear box" />
+          </div>
         </div>
 
       </section>

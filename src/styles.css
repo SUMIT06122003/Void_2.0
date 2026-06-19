@@ -16519,3 +16519,111 @@ body {
     display: none !important;
   }
 }
+
+/* Prevent oversized hero art from creating a horizontally shifted mobile page. */
+html,
+body,
+#root,
+.site-shell {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+@media (max-width: 768px) {
+  .site-header,
+  .primary-nav,
+  main,
+  .void-section,
+  .void-categories,
+  .void-core {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+  }
+
+  .void-category-grid {
+    box-sizing: border-box !important;
+    gap: 12px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+    width: 100% !important;
+  }
+
+  .void-core {
+    overflow: hidden !important;
+    padding-left: 5px !important;
+    padding-right: 5px !important;
+    width: 100% !important;
+  }
+
+  .void-core-intro {
+    box-sizing: border-box !important;
+    max-width: 100% !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+}
+
+/* Align the visible drawer logo with the homepage navbar logo. */
+@media (max-width: 980px) {
+  .mobile-menu-head .mobile-menu-brand {
+    margin-left: -28px !important;
+    transform: none !important;
+  }
+
+  .mobile-menu-head .mobile-menu-close {
+    flex: 0 0 44px !important;
+    margin-left: auto !important;
+  }
+}
+
+/* Dedicated sticky stage for the VOID box. */
+.void-hero-sticky-stage {
+  display: contents;
+}
+
+@media (max-width: 768px) {
+  .void-hero {
+    min-height: 0 !important;
+    overflow: visible !important;
+    padding-bottom: 0 !important;
+  }
+
+  .void-hero-sticky-stage {
+    display: block !important;
+    height: clamp(560px, 86svh, 760px) !important;
+    overflow: visible !important;
+    position: relative !important;
+  }
+
+  .void-hero-sticky-stage .void-hero-media.is-box {
+    align-self: auto !important;
+    display: flex !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
+    margin: 12px 0 0 !important;
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 72px !important;
+    transform: none !important;
+    z-index: 2 !important;
+  }
+
+  .void-hero-sticky-stage .void-hero-media.is-box img {
+    height: auto !important;
+    max-height: none !important;
+    object-fit: contain !important;
+    width: min(560px, 100vw) !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .void-hero-sticky-stage {
+    height: clamp(500px, 82svh, 650px) !important;
+  }
+
+  .void-hero-sticky-stage .void-hero-media.is-box {
+    top: 68px !important;
+  }
+}
