@@ -2,6 +2,7 @@ import {
   ArrowRight,
   Crown,
   Dumbbell,
+  Plus,
   ShieldCheck
 } from "lucide-react";
 import Hero from "../components/Hero";
@@ -13,7 +14,7 @@ import { categoryToSlug, productToSlug } from "../utils/catalog";
 function HomePage({ products = fallbackProducts }) {
   const displayProducts = products.length ? products : fallbackProducts;
   const categories = buildCategories(displayProducts);
-  const featured = displayProducts.slice(0, 4);
+  const featured = displayProducts.slice(0, 2);
   const aboutImage = displayProducts[0]?.gallery?.[4] || displayProducts[0]?.image || brandAssets.heroTee;
 
   return (
@@ -61,17 +62,13 @@ function CoreCollection({ products }) {
   return (
     <section className="void-section void-core" aria-label="Core collection">
       <div className="void-core-intro">
-        <span>New Drop</span>
-        <h2>Core Collection</h2>
-        <p>Minimal pieces. Maximum impact. Made to push your limits.</p>
-        <a className="void-button" href="#/shop">
-          View Collection <ArrowRight size={16} />
-        </a>
+        <span>Core Collection</span>
+        <h2>Our <strong>bestsellers</strong></h2>
       </div>
       <div className="void-product-row">
         {products.map((product, index) => (
           <article className="void-product-card" key={product.name}>
-            {index === 0 ? <span className="void-product-badge">Best Seller</span> : null}
+            {index === 0 ? <span className="void-product-badge">New</span> : null}
             <a className="void-product-image" href={`#/product/${productToSlug(product)}`}>
               <img src={product.image} alt={product.name} />
             </a>
@@ -79,15 +76,15 @@ function CoreCollection({ products }) {
               <h3>
                 <a href={`#/product/${productToSlug(product)}`}>{product.name}</a>
               </h3>
-              <strong>{product.price}</strong>
-              {product.variants?.color?.length ? (
-                <div className="void-product-swatches" aria-label={`${product.name} colors`}>
-                  {product.variants.color.slice(0, 4).map((color, colorIndex) => (
-                    <i key={color} title={color} data-swatch={colorIndex % 4} />
-                  ))}
+              <div className="void-bestseller-buy">
+                <div>
+                  <strong>{product.price}</strong>
+                  {product.compareAt ? <del>{product.compareAt}</del> : null}
                 </div>
-              ) : null}
-              <span className="void-rating">Rated {product.rating || "4.50"} ({index === 0 ? "120" : 38 + index * 18})</span>
+                <a href={`#/product/${productToSlug(product)}`} aria-label={`View ${product.name}`}>
+                  <Plus size={20} />
+                </a>
+              </div>
             </div>
           </article>
         ))}

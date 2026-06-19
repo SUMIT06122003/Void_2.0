@@ -914,6 +914,141 @@ body {
   }
 }
 
+/* Core Collection styled from the supplied bestseller reference. */
+.void-bestseller-buy {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.void-bestseller-buy > div {
+  align-items: baseline;
+  display: flex;
+  gap: 8px;
+}
+
+.void-bestseller-buy del {
+  color: #aaa;
+  font-size: 12px;
+}
+
+.void-bestseller-buy > a {
+  align-items: center;
+  background: #0a0a0a;
+  border-radius: 50%;
+  color: #fff;
+  display: inline-flex;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+@media (max-width: 700px) {
+  .void-core {
+    padding: 42px 5px 20px !important;
+  }
+
+  .void-core-intro {
+    margin-bottom: 26px !important;
+    padding: 0 10px !important;
+  }
+
+  .void-core-intro span {
+    color: #999 !important;
+    font-size: 11px !important;
+    font-weight: 500 !important;
+    letter-spacing: 0.28em !important;
+    margin-bottom: 9px !important;
+  }
+
+  .void-core-intro h2 {
+    font-size: 31px !important;
+    font-weight: 400 !important;
+    letter-spacing: -0.035em !important;
+    line-height: 1 !important;
+    margin: 0 !important;
+    text-transform: none !important;
+  }
+
+  .void-core-intro h2 strong {
+    font-weight: 900 !important;
+  }
+
+  .void-core .void-product-row {
+    gap: 16px !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .void-core .void-product-card {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    position: relative !important;
+  }
+
+  .void-core .void-product-image {
+    aspect-ratio: 0.76 / 1 !important;
+    background: #e6e5ea !important;
+    border-radius: 19px !important;
+    overflow: hidden !important;
+  }
+
+  .void-core .void-product-image img {
+    object-fit: contain !important;
+    padding: 10px 3px 0 !important;
+  }
+
+  .void-core .void-product-badge {
+    background: #080808 !important;
+    border-radius: 999px !important;
+    color: #fff !important;
+    font-size: 11px !important;
+    left: 15px !important;
+    letter-spacing: 0.08em !important;
+    padding: 7px 14px !important;
+    position: absolute !important;
+    right: auto !important;
+    top: 15px !important;
+    z-index: 2 !important;
+  }
+
+  .void-core .void-product-copy {
+    padding: 14px 0 0 !important;
+  }
+
+  .void-core .void-product-copy h3 {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    line-height: 1.25 !important;
+    margin: 0 0 9px !important;
+  }
+
+  .void-core .void-product-copy > strong,
+  .void-bestseller-buy strong {
+    font-size: 20px !important;
+  }
+
+  .void-bestseller-buy {
+    gap: 5px !important;
+  }
+
+  .void-bestseller-buy > div {
+    gap: 5px !important;
+    min-width: 0 !important;
+  }
+
+  .void-bestseller-buy del {
+    font-size: 11px !important;
+    white-space: nowrap !important;
+  }
+
+  .void-bestseller-buy > a {
+    flex: 0 0 46px !important;
+  }
+}
+
 @media (max-width: 640px) {
   .void-promo-bar {
     font-size: 10px;
@@ -16257,4 +16392,130 @@ body {
 @media (max-width: 700px) {
   .void-hero { padding-bottom: 0 !important; }
   .void-proof-row { background: #fff !important; margin-top: 0 !important; position: relative !important; z-index: 5 !important; }
+}
+
+/* Hero contains only copy + VOID box; runway preserves the sticky scroll effect. */
+@media (max-width: 700px) {
+  .void-hero {
+    padding-bottom: 260px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .void-hero {
+    padding-bottom: 210px !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .icon-button.mobile-only.is-menu-close {
+    background: #fff0f0 !important;
+    border-color: #ef4444 !important;
+    color: #dc2626 !important;
+    position: relative !important;
+    z-index: 220 !important;
+  }
+
+  .icon-button.mobile-only.is-menu-close svg {
+    color: #dc2626 !important;
+    stroke: #dc2626 !important;
+    stroke-width: 2.5 !important;
+  }
+}
+
+/* Bestseller reference — authoritative mobile cascade. */
+@media (max-width: 700px) {
+  .void-core { padding: 42px 5px 20px !important; }
+  .void-core-intro { margin-bottom: 26px !important; padding: 0 10px !important; }
+  .void-core-intro span { color: #999 !important; font-size: 11px !important; font-weight: 500 !important; letter-spacing: .28em !important; margin-bottom: 9px !important; }
+  .void-core-intro h2 { font-size: 31px !important; font-weight: 400 !important; letter-spacing: -.035em !important; line-height: 1 !important; margin: 0 !important; text-transform: none !important; }
+  .void-core-intro h2 strong { font-weight: 900 !important; }
+  .void-core .void-product-row { gap: 16px !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+  .void-core .void-product-card { background: transparent !important; border: 0 !important; box-shadow: none !important; overflow: visible !important; padding: 0 !important; position: relative !important; }
+  .void-core .void-product-image { aspect-ratio: .76 / 1 !important; background: #e6e5ea !important; border-radius: 19px !important; overflow: hidden !important; }
+  .void-core .void-product-image img { object-fit: contain !important; padding: 10px 3px 0 !important; }
+  .void-core .void-product-badge { background: #080808 !important; border-radius: 999px !important; color: #fff !important; font-size: 11px !important; left: 15px !important; letter-spacing: .08em !important; padding: 7px 14px !important; position: absolute !important; right: auto !important; top: 15px !important; z-index: 2 !important; }
+  .void-core .void-product-copy { padding: 14px 0 0 !important; }
+  .void-core .void-product-copy h3 { font-size: 15px !important; font-weight: 500 !important; line-height: 1.25 !important; margin: 0 0 9px !important; }
+  .void-bestseller-buy { align-items: center !important; display: flex !important; gap: 5px !important; justify-content: space-between !important; }
+  .void-bestseller-buy > div { align-items: baseline !important; display: flex !important; gap: 5px !important; min-width: 0 !important; }
+  .void-bestseller-buy strong { font-size: 20px !important; }
+  .void-bestseller-buy del { color: #aaa !important; font-size: 11px !important; white-space: nowrap !important; }
+  .void-bestseller-buy > a { align-items: center !important; background: #0a0a0a !important; border-radius: 50% !important; color: #fff !important; display: inline-flex !important; flex: 0 0 46px !important; height: 46px !important; justify-content: center !important; width: 46px !important; }
+}
+
+/* Consistent mobile/tablet navbar and unmistakable menu close action. */
+@media (max-width: 980px) {
+  .primary-nav {
+    gap: 8px !important;
+    grid-template-columns: 90px minmax(0, 1fr) 46px !important;
+    grid-template-rows: 62px !important;
+    height: 62px !important;
+    margin: 0 !important;
+    max-width: 100% !important;
+    min-height: 62px !important;
+    overflow: visible !important;
+    padding: 0 14px !important;
+    width: 100% !important;
+  }
+
+  .brand {
+    grid-column: 1 !important;
+    justify-self: start !important;
+    margin: 0 !important;
+    min-width: 76px !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    transform: none !important;
+  }
+
+  .brand img {
+    display: block !important;
+    height: auto !important;
+    margin: 0 !important;
+    max-width: 76px !important;
+    object-fit: contain !important;
+    transform: none !important;
+    width: 70px !important;
+  }
+
+  .nav-actions {
+    grid-column: 2 !important;
+    justify-self: end !important;
+  }
+
+  .icon-button.mobile-only {
+    grid-column: 3 !important;
+    justify-self: end !important;
+  }
+
+  .mobile-menu-close,
+  .icon-button.mobile-only.is-menu-close {
+    background: #fff0f0 !important;
+    border: 1px solid #ef4444 !important;
+    border-radius: 12px !important;
+    color: #dc2626 !important;
+    height: 44px !important;
+    min-width: 44px !important;
+    opacity: 1 !important;
+    width: 44px !important;
+  }
+
+  .mobile-menu-close svg,
+  .icon-button.mobile-only.is-menu-close svg {
+    color: #dc2626 !important;
+    opacity: 1 !important;
+    stroke: #dc2626 !important;
+    stroke-width: 2.7 !important;
+  }
+
+  .mobile-menu-head {
+    align-items: center !important;
+    min-height: 76px !important;
+    padding: 14px 16px !important;
+  }
+
+  .site-header.is-menu-open ~ main .void-mobile-shop-cta {
+    display: none !important;
+  }
 }

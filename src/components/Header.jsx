@@ -113,12 +113,13 @@ function Header({
       ) : null}
       <div className="primary-nav">
         <button
-          className="icon-button mobile-only"
+          className={`icon-button mobile-only ${menuOpen ? "is-menu-close" : ""}`}
           type="button"
-          aria-label="Open menu"
-          onClick={() => setMenuOpen(true)}
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((open) => !open)}
         >
-          <Menu size={19} />
+          {menuOpen ? <X size={22} /> : <Menu size={19} />}
         </button>
 
         <a className="brand" href="#/" aria-label="VOID Activewear home">

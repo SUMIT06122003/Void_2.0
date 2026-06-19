@@ -1,8 +1,5 @@
-import { ArrowRight, PackageCheck, RotateCcw, ShieldCheck, Truck } from "lucide-react";
-import { storeSpecs } from "../data/storeData";
+import { ArrowRight } from "lucide-react";
 import voidBox from "../assets/voidbox.png";
-
-const proofIcons = [ShieldCheck, Truck, RotateCcw, PackageCheck];
 
 function Hero() {
   return (
@@ -21,20 +18,6 @@ function Hero() {
           <img src={voidBox} alt="VOID premium activewear box" />
         </div>
 
-        <div className="void-proof-row" aria-label="Store benefits">
-          {storeSpecs.map((spec, index) => {
-            const Icon = proofIcons[index % proofIcons.length];
-            return (
-              <article key={spec.label}>
-                <Icon size={22} />
-                <div>
-                  <strong>{spec.label}</strong>
-                  <span>{spec.text}</span>
-                </div>
-              </article>
-            );
-          })}
-        </div>
       </section>
     </>
   );
