@@ -15829,10 +15829,10 @@ body {
   }
 
   .void-hero-copy h1 {
-    font-size: clamp(42px, 12.2vw, 50px) !important;
+    font-size: clamp(39px, 11vw, 44px) !important;
     letter-spacing: -0.025em !important;
     line-height: 0.98 !important;
-    max-width: 10.5ch !important;
+    max-width: none !important;
   }
 
   .void-hero-copy p {
@@ -15844,15 +15844,15 @@ body {
   }
 
   .void-hero-copy .void-button {
-    font-size: 13px !important;
-    gap: 18px !important;
-    min-height: 52px !important;
-    padding: 0 19px !important;
+    font-size: 12px !important;
+    gap: 12px !important;
+    min-height: 44px !important;
+    padding: 0 18px !important;
   }
 
   .void-hero-copy .void-button svg {
-    height: 20px !important;
-    width: 20px !important;
+    height: 18px !important;
+    width: 18px !important;
   }
 
   .void-hero-media {
@@ -15866,8 +15866,8 @@ body {
   }
 
   .void-hero-media img {
-    max-height: min(500px, 58vh) !important;
-    width: min(520px, 96vw) !important;
+    max-height: min(560px, 66vh) !important;
+    width: min(560px, 112vw) !important;
   }
 }
 
@@ -15878,7 +15878,7 @@ body {
   }
 
   .void-hero-copy h1 {
-    font-size: clamp(39px, 12vw, 46px) !important;
+    font-size: clamp(37px, 10.8vw, 41px) !important;
   }
 
   .void-hero-media {
@@ -15888,7 +15888,7 @@ body {
   }
 
   .void-hero-media img {
-    max-height: min(450px, 56vh) !important;
-    width: min(480px, 96vw) !important;
+    max-height: min(520px, 64vh) !important;
+    width: min(520px, 112vw) !important;
   }
 }
