@@ -20,6 +20,7 @@
   --void-soft: #f2f1ee;
   --void-white: #ffffff;
   --void-radius: 8px;
+  --void-section-radius: 12px;
   --void-max: 1180px;
 }
 
@@ -16603,10 +16604,10 @@ body,
     display: flex !important;
     grid-column: auto !important;
     grid-row: auto !important;
-    margin: 12px 0 0 !important;
+    margin: 24px 0 0 !important;
     position: -webkit-sticky !important;
     position: sticky !important;
-    top: 72px !important;
+    top: 84px !important;
     transform: none !important;
     z-index: 2 !important;
   }
@@ -16625,7 +16626,7 @@ body,
   }
 
   .void-hero-sticky-stage .void-hero-media.is-box {
-    top: 68px !important;
+    top: 80px !important;
   }
 }
 
@@ -16637,7 +16638,7 @@ body,
 .void-reviews,
 .void-store-strip,
 .void-community {
-  border-radius: 20px;
+  border-radius: var(--void-section-radius);
   background-clip: padding-box;
 }
 
@@ -16658,16 +16659,6 @@ body,
 }
 
 @media (max-width: 768px) {
-  .void-hero,
-  .void-benefits,
-  .void-core,
-  .void-about,
-  .void-reviews,
-  .void-store-strip,
-  .void-community {
-    border-radius: 16px;
-  }
-
   .void-benefits,
   .void-core,
   .void-about,
