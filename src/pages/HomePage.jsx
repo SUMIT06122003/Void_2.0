@@ -19,13 +19,16 @@ function HomePage({ products = fallbackProducts }) {
   return (
     <>
       <Hero />
-      <CategoryShowcase categories={categories} />
       <WhyChooseVoid />
+      <CategoryShowcase categories={categories} />
       <CoreCollection products={featured} />
       <AboutVoid image={aboutImage} />
       <Testimonials />
       <StoreSpecsStrip />
       <CommunitySignup />
+      <a className="void-mobile-shop-cta" href="#/shop">
+        Shop Collection <ArrowRight size={18} />
+      </a>
     </>
   );
 }
@@ -77,6 +80,13 @@ function CoreCollection({ products }) {
                 <a href={`#/product/${productToSlug(product)}`}>{product.name}</a>
               </h3>
               <strong>{product.price}</strong>
+              {product.variants?.color?.length ? (
+                <div className="void-product-swatches" aria-label={`${product.name} colors`}>
+                  {product.variants.color.slice(0, 4).map((color, colorIndex) => (
+                    <i key={color} title={color} data-swatch={colorIndex % 4} />
+                  ))}
+                </div>
+              ) : null}
               <span className="void-rating">Rated {product.rating || "4.50"} ({index === 0 ? "120" : 38 + index * 18})</span>
             </div>
           </article>

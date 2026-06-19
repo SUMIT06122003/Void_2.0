@@ -21,7 +21,7 @@
     "orders": [
       {
         "id": "VOID-3351B2",
-        "status": "Pending",
+        "status": "Shipped",
         "items": [
           {
             "name": "New Product",
@@ -42,7 +42,11 @@
         "paymentMethod": "demo_card",
         "paymentStatus": "Paid",
         "createdAt": "2026-06-16T13:08:17.750Z",
-        "updatedAt": "2026-06-16T13:08:17.750Z"
+        "updatedAt": "2026-06-19T06:31:53.077Z",
+        "trackingNumber": "123456789",
+        "courierPartner": "",
+        "fulfillmentNote": "",
+        "expectedDelivery": ""
       },
       {
         "id": "VOID-6DE524",

@@ -10,19 +10,14 @@ function Hero() {
       <div className="void-hero-copy">
         <span>Premium Activewear</span>
         <h1>Built For Discipline. Made To Last.</h1>
-        <p>Performance-driven essentials for those who show up every day.</p>
+        <p>Premium activewear engineered for movement.</p>
         <a className="void-button" href="#/shop">
-          Shop Now <ArrowRight size={16} />
+          Shop Collection <ArrowRight size={16} />
         </a>
       </div>
 
-      <div className="void-hero-media" aria-label="VOID activewear hero">
-        <img src={voidBox} alt="VOID activewear gift box" />
-        <div className="void-hero-signature" aria-hidden="true">
-          <i />
-          <span>Fueling Ambition</span>
-          <i />
-        </div>
+      <div className="void-hero-media is-box" aria-label="VOID premium activewear box">
+        <img src={voidBox} alt="VOID premium activewear box" />
       </div>
 
       <div className="void-proof-row" aria-label="Store benefits">

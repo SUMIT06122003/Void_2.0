@@ -1,25 +1,25 @@
-import { Cloud, Crown, MinusCircle, Zap } from "lucide-react";
+import { Move, Shirt, Wind, Zap } from "lucide-react";
 
 const items = [
   {
-    title: "Built For Performance",
-    text: "Engineered to support every move.",
+    title: "Quick Dry",
+    text: "Sweat-wicking fabric keeps you ready.",
     Icon: Zap
   },
   {
-    title: "Minimal. Clean. Timeless.",
-    text: "Simple designs that never go out of style.",
-    Icon: MinusCircle
+    title: "4-Way Stretch",
+    text: "Freedom through every rep and stride.",
+    Icon: Move
   },
   {
-    title: "Comfort That Works Hard",
-    text: "Premium fabrics for all-day comfort.",
-    Icon: Cloud
+    title: "Breathable",
+    text: "Built for airflow and all-day comfort.",
+    Icon: Wind
   },
   {
-    title: "Discipline Is Everything",
-    text: "More than activewear. It is a mindset.",
-    Icon: Crown
+    title: "Performance Fit",
+    text: "A clean athletic cut that moves with you.",
+    Icon: Shirt
   }
 ];
 
