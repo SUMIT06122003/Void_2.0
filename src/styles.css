@@ -16585,6 +16585,7 @@ body,
 
 @media (max-width: 768px) {
   .void-hero {
+    display: block !important;
     min-height: 0 !important;
     overflow: visible !important;
     padding-bottom: 0 !important;
@@ -16625,5 +16626,56 @@ body,
 
   .void-hero-sticky-stage .void-hero-media.is-box {
     top: 68px !important;
+  }
+}
+
+/* Shared rounded section language */
+.void-hero,
+.void-benefits,
+.void-core,
+.void-about,
+.void-reviews,
+.void-store-strip,
+.void-community {
+  border-radius: 20px;
+  background-clip: padding-box;
+}
+
+.void-benefits,
+.void-core,
+.void-about,
+.void-reviews,
+.void-store-strip,
+.void-community {
+  overflow: hidden;
+}
+
+@media (min-width: 769px) {
+  .void-hero {
+    max-width: calc(100% - 24px);
+    overflow: hidden;
+  }
+}
+
+@media (max-width: 768px) {
+  .void-hero,
+  .void-benefits,
+  .void-core,
+  .void-about,
+  .void-reviews,
+  .void-store-strip,
+  .void-community {
+    border-radius: 16px;
+  }
+
+  .void-benefits,
+  .void-core,
+  .void-about,
+  .void-reviews,
+  .void-store-strip,
+  .void-community {
+    margin-left: 8px;
+    margin-right: 8px;
+    max-width: calc(100% - 16px) !important;
   }
 }

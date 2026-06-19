@@ -9,20 +9,18 @@ import Hero from "../components/Hero";
 import Testimonials from "../components/Testimonials";
 import WhyChooseVoid from "../components/WhyChooseVoid";
 import { brandAssets, products as fallbackProducts, storeSpecs } from "../data/storeData";
-import { categoryToSlug, productToSlug } from "../utils/catalog";
+import { productToSlug } from "../utils/catalog";
 
 function HomePage({ products = fallbackProducts }) {
   const displayProducts = products.length ? products : fallbackProducts;
-  const categories = buildCategories(displayProducts);
-  const featured = displayProducts.slice(0, 2);
+  const featuredProducts = displayProducts.slice(0, 2);
   const aboutImage = displayProducts[0]?.gallery?.[4] || displayProducts[0]?.image || brandAssets.heroTee;
 
   return (
     <>
       <Hero />
       <WhyChooseVoid />
-      <CategoryShowcase categories={categories} />
-      <CoreCollection products={featured} />
+      <CoreCollection products={featuredProducts} />
       <AboutVoid image={aboutImage} />
       <Testimonials />
       <StoreSpecsStrip />
@@ -31,30 +29,6 @@ function HomePage({ products = fallbackProducts }) {
         Shop Collection <ArrowRight size={18} />
       </a>
     </>
-  );
-}
-
-function CategoryShowcase({ categories }) {
-  return (
-    <section className="void-section void-categories" aria-label="Shop by category">
-      <div className="void-section-heading is-centered">
-        <span>Explore Our Essentials</span>
-        <h2>Designed For Every Move</h2>
-      </div>
-      <div className="void-category-grid">
-        {categories.map((category) => (
-          <a className="void-category-card" href={`#/shop/${category.slug}`} key={category.name}>
-            <img src={category.image} alt={category.name} />
-            <div>
-              <strong>{category.name}</strong>
-              <span>
-                Shop Now <ArrowRight size={14} />
-              </span>
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
   );
 }
 
@@ -67,7 +41,7 @@ function CoreCollection({ products }) {
       </div>
       <div className="void-product-row">
         {products.map((product, index) => (
-          <article className="void-product-card" key={product.name}>
+          <article className="void-product-card" key={product.id || product.sku || product.name}>
             {index === 0 ? <span className="void-product-badge">New</span> : null}
             <a className="void-product-image" href={`#/product/${productToSlug(product)}`}>
               <img src={product.image} alt={product.name} />
@@ -174,27 +148,6 @@ function CommunitySignup() {
       </form>
     </section>
   );
-}
-
-function buildCategories(products) {
-  const map = new Map();
-
-  for (const product of products) {
-    if (!product.category || map.has(product.category)) continue;
-    map.set(product.category, {
-      name: pluralizeCategory(product.category),
-      slug: categoryToSlug(product.category),
-      image: product.gallery?.[0] || product.image
-    });
-  }
-
-  return Array.from(map.values());
-}
-
-function pluralizeCategory(category) {
-  if (category === "T-Shirt") return "T-Shirts";
-  if (category === "Shaker") return "Shakers";
-  return category;
 }
 
 export default HomePage;
