@@ -18,8 +18,10 @@ function HomePage({ products = fallbackProducts }) {
 
   return (
     <>
-      <Hero />
-      <WhyChooseVoid />
+      <div className="void-hero-benefits-stage">
+        <Hero />
+        <WhyChooseVoid />
+      </div>
       <CoreCollection products={featuredProducts} />
       <AboutVoid image={aboutImage} />
       <Testimonials />

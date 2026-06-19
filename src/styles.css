@@ -16630,6 +16630,47 @@ body,
   }
 }
 
+/* Let the original sticky box travel through the benefits area on mobile. */
+.void-hero-benefits-stage {
+  display: contents;
+}
+
+@media (max-width: 768px) {
+  .void-hero-benefits-stage {
+    display: block;
+    position: relative;
+  }
+
+  .void-hero-benefits-stage .void-hero {
+    display: contents !important;
+  }
+
+  .void-hero-benefits-stage .void-hero-copy {
+    background: #fbfbfa;
+    position: relative;
+    z-index: 3;
+  }
+
+  .void-hero-benefits-stage .void-hero-sticky-stage {
+    display: contents !important;
+  }
+
+  .void-hero-benefits-stage .void-hero-media.is-box {
+    margin: 12px 0 0 !important;
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 72px !important;
+    z-index: 2 !important;
+  }
+
+  .void-hero-benefits-stage .void-benefits {
+    background: #fff !important;
+    margin-top: 0 !important;
+    position: relative;
+    z-index: 5;
+  }
+}
+
 /* Shared rounded section language */
 .void-hero,
 .void-benefits,
